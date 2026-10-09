@@ -2,6 +2,7 @@ import { apiDownload, apiRequest } from "@/lib/api/client";
 import type {
   BulkDeleteResult,
   CurrentUser,
+  DashboardSummary,
   DnsRecord,
   HostedZone,
   HostedZoneInput,
@@ -19,6 +20,10 @@ export const authApi = {
     apiRequest<CurrentUser>("/api/auth/login", { method: "POST", body: credentials }),
   logout: () => apiRequest<void>("/api/auth/logout", { method: "POST" }),
   me: (signal?: AbortSignal) => apiRequest<CurrentUser>("/api/auth/me", { signal }),
+};
+
+export const dashboardApi = {
+  summary: (signal?: AbortSignal) => apiRequest<DashboardSummary>("/api/dashboard", { signal }),
 };
 
 export interface ZoneListParams {

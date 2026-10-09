@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-import { choose, createZoneViaApi, deleteZonesViaApi, modal, signIn, uniqueZoneName, visible } from "./helpers";
+import { choose, createZoneViaApi, deleteZonesViaApi, modal, signInToHostedZones, uniqueZoneName, visible } from "./helpers";
 
 test.describe("hosted zones", () => {
-  test.beforeEach(async ({ page }) => signIn(page));
+  test.beforeEach(async ({ page }) => signInToHostedZones(page));
   test.afterEach(async ({ page }) => deleteZonesViaApi(page, "e2e-zone"));
 
   test("create, find, search, view, edit and delete a hosted zone", async ({ page }) => {

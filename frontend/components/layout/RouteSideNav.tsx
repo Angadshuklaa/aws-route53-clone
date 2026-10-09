@@ -3,28 +3,39 @@
 import SideNavigation, { type SideNavigationProps } from "@cloudscape-design/components/side-navigation";
 
 import { useFollow } from "@/components/common/navigation";
-import { RESOLVER_SECTIONS, ROUTES } from "@/lib/routes";
+import { PLACEHOLDER_SECTIONS, placeholderHref, ROUTES } from "@/lib/routes";
 
+const link = (slug: string): SideNavigationProps.Link => ({
+  type: "link",
+  text: PLACEHOLDER_SECTIONS[slug].title,
+  href: placeholderHref(slug),
+});
+
+const section = (text: string, slugs: string[]): SideNavigationProps.Section => ({
+  type: "section",
+  text,
+  defaultExpanded: false,
+  items: slugs.map(link),
+});
+
+// Mirrors the Route 53 console navigation. Sections other than Dashboard and
+// Hosted zones open "coming soon" pages.
 const ITEMS: SideNavigationProps.Item[] = [
   { type: "link", text: "Dashboard", href: ROUTES.dashboard },
   { type: "link", text: "Hosted zones", href: ROUTES.hostedZones },
-  { type: "link", text: "Health checks", href: ROUTES.healthChecks },
-  { type: "link", text: "Profiles", href: ROUTES.profiles },
-  {
-    type: "section",
-    text: "Traffic flow",
-    items: [{ type: "link", text: "Traffic policies", href: ROUTES.trafficPolicies }],
-  },
-  {
-    type: "section",
-    text: "Resolver",
-    defaultExpanded: false,
-    items: Object.entries(RESOLVER_SECTIONS).map(([slug, text]) => ({
-      type: "link" as const,
-      text,
-      href: ROUTES.resolver(slug),
-    })),
-  },
+  link("healthchecks"),
+  link("profiles"),
+  section("IP-based routing", ["cidrcollections"]),
+  section("Traffic flow", ["trafficpolicies", "policyrecords"]),
+  section("Domains", ["domains/registered", "domains/requests"]),
+  section("Resolver", [
+    "resolver/vpcs",
+    "resolver/inbound-endpoints",
+    "resolver/outbound-endpoints",
+    "resolver/rules",
+    "resolver/query-logging",
+  ]),
+  section("DNS Firewall", ["dnsfirewall/rule-groups", "dnsfirewall/domain-lists"]),
 ];
 
 function activeHrefFor(pathname: string): string {
@@ -35,11 +46,18 @@ function activeHrefFor(pathname: string): string {
 
 export function RouteSideNav({ pathname }: { pathname: string }) {
   const follow = useFollow();
+  const activeHref = activeHrefFor(pathname);
+  // Expand the section that contains the current page.
+  const items = ITEMS.map((item) =>
+    item.type === "section" && item.items.some((child) => child.type === "link" && child.href === activeHref)
+      ? { ...item, defaultExpanded: true }
+      : item,
+  );
   return (
     <SideNavigation
       header={{ text: "Route 53", href: ROUTES.dashboard }}
-      activeHref={activeHrefFor(pathname)}
-      items={ITEMS}
+      activeHref={activeHref}
+      items={items}
       onFollow={follow}
     />
   );

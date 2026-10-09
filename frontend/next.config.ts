@@ -21,7 +21,6 @@ export default function nextConfig(phase: string): NextConfig {
     poweredByHeader: false,
     async redirects() {
       return [
-        { source: "/", destination: "/route53/v2/hostedzones", permanent: false },
         { source: "/route53", destination: "/route53/v2/dashboard", permanent: false },
         { source: "/route53/v2", destination: "/route53/v2/dashboard", permanent: false },
       ];

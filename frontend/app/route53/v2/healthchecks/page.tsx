@@ -1,9 +1,0 @@
-import type { Metadata } from "next";
-
-import { ComingSoon } from "@/components/common/ComingSoon";
-
-export const metadata: Metadata = { title: "Health checks" };
-
-export default function HealthChecksPage() {
-  return <ComingSoon title="Health checks" description="Monitor the health and performance of your web applications and other resources." />;
-}

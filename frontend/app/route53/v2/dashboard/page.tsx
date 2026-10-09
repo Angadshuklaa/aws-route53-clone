@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
-import { ComingSoon } from "@/components/common/ComingSoon";
+import { DashboardPage } from "@/components/dashboard/DashboardPage";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
-export default function DashboardPage() {
-  return <ComingSoon title="Dashboard" description="An overview of your DNS management, traffic management and availability monitoring." />;
+export default function Page() {
+  return <DashboardPage />;
 }

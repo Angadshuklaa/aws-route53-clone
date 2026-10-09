@@ -95,3 +95,10 @@ export interface ZoneImportResult {
 }
 
 export type SortOrder = "asc" | "desc";
+
+export interface DashboardSummary {
+  hosted_zones: { total: number; public: number; private: number };
+  record_count: number;
+  records_by_type: Record<RecordType, number>;
+  recent_zones: HostedZone[];
+}

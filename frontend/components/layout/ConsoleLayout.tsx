@@ -43,6 +43,7 @@ export function ConsoleLayout({
   return (
     <AppLayout
       headerSelector="#top-nav"
+      footerSelector="#console-footer"
       navigation={<RouteSideNav pathname={pathname} />}
       navigationOpen={navigationOpen}
       onNavigationChange={({ detail }) => setNavigationOpen(detail.open)}

@@ -108,3 +108,86 @@ body {
   max-height: 180px;
   overflow: auto;
 }
+
+/* Keyboard users can jump past the navigation. */
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -100px;
+  z-index: 100;
+  padding: 8px 16px;
+  background: #ffffff;
+  color: #0f141a;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(15, 20, 26, 0.3);
+}
+
+.skip-link:focus {
+  top: 8px;
+}
+
+/* Console search with the keyboard hint shown inside the field, like the AWS console. */
+.console-search {
+  position: relative;
+  width: 100%;
+}
+
+.console-search__hint {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: #b4b4bb;
+  pointer-events: none;
+}
+
+/* Console footer, pinned to the bottom like the AWS console footer. */
+#console-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 32px;
+  padding: 4px 20px;
+  box-sizing: border-box;
+  background: #0f141a;
+  color: #b4b4bb;
+  font-family: "Open Sans", "Helvetica Neue", Roboto, Arial, sans-serif;
+  font-size: 12px;
+}
+
+#console-footer a,
+#console-footer button {
+  color: #ffffff;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+#console-footer a:hover,
+#console-footer button:hover {
+  text-decoration: underline;
+}
+
+.console-footer__group {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 688px) {
+  .console-footer__group--secondary,
+  .console-footer__optional {
+    display: none;
+  }
+}

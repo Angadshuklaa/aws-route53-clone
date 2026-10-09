@@ -6,13 +6,20 @@ export const DEMO = { account_id: "123456789012", username: "demo", password: "R
 export const uniqueZoneName = (label: string) =>
   `e2e-${label}-${Date.now().toString(36)}${Math.floor(Math.random() * 1e4)}.example`;
 
-export async function signIn(page: Page): Promise<void> {
-  await page.goto("/login");
+export async function signIn(page: Page, nextPath?: string): Promise<void> {
+  await page.goto(nextPath ? `/login?next=${encodeURIComponent(nextPath)}` : "/login");
   await page.getByLabel("Account ID (12 digits) or account alias").fill(DEMO.account_id);
-  await page.getByLabel("IAM user name").fill(DEMO.username);
-  await page.getByLabel("Password").fill(DEMO.password);
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page.getByLabel("IAM username").fill(DEMO.username);
+  await page.getByLabel("Password", { exact: true }).fill(DEMO.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await expect(page).toHaveURL(/\/route53\/v2\/hostedzones/);
+  await expect(page).toHaveURL(new RegExp(nextPath ? nextPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") : "/route53/v2/dashboard"));
+}
+
+/** Signs in and opens the hosted zones list. */
+export async function signInToHostedZones(page: Page): Promise<void> {
+  await signIn(page, "/route53/v2/hostedzones");
+  await expect(page.getByRole("heading", { name: /Hosted zones/, level: 1 })).toBeVisible();
 }
 
 /** Creates a zone through the API (sharing the browser session) for faster setup. */

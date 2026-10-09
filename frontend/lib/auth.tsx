@@ -1,6 +1,5 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { setUnauthorizedHandler } from "@/lib/api/client";
@@ -27,12 +26,10 @@ export function loginUrl(nextPath: string): string {
 /** Only allow same-site relative redirects after sign-in. */
 export function safeNextPath(raw: string | null): string {
   if (raw && raw.startsWith("/") && !raw.startsWith("//") && !raw.startsWith(LOGIN_PATH)) return raw;
-  return "/route53/v2/hostedzones";
+  return "/route53/v2/dashboard";
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const router = useRouter();
-  const pathname = usePathname();
   const [status, setStatus] = useState<AuthStatus>("loading");
   const [user, setUser] = useState<CurrentUser | null>(null);
 
@@ -55,17 +52,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => controller.abort();
   }, []);
 
-  // If any API call reports an expired session, send the user back to sign in.
+  // If any API call reports an expired session, drop the signed-in state.
+  // Protected pages then redirect to sign-in (see RequireAuth); public pages
+  // such as the landing page simply show their signed-out state.
   useEffect(() => {
     setUnauthorizedHandler(() => {
       setUser(null);
       setStatus("unauthenticated");
-      if (!window.location.pathname.startsWith(LOGIN_PATH)) {
-        router.replace(loginUrl(window.location.pathname + window.location.search));
-      }
     });
     return () => setUnauthorizedHandler(null);
-  }, [router, pathname]);
+  }, []);
 
   const login = useCallback(async (credentials: { account_id: string; username: string; password: string }) => {
     const current = await authApi.login(credentials);
@@ -80,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       // A full navigation resets all client state and avoids racing the
       // protected-route redirect (which would add ?next=).
-      window.location.replace(LOGIN_PATH);
+      window.location.replace("/");
     }
   }, []);
 

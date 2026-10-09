@@ -1,9 +1,0 @@
-import type { Metadata } from "next";
-
-import { ComingSoon } from "@/components/common/ComingSoon";
-
-export const metadata: Metadata = { title: "Profiles" };
-
-export default function ProfilesPage() {
-  return <ComingSoon title="Profiles" description="Share DNS settings with many VPCs across accounts by using Route 53 Profiles." />;
-}

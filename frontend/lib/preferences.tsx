@@ -34,6 +34,8 @@ interface PreferencesContextValue {
   setNavigationOpen: (open: boolean) => void;
   shortcutsVisible: boolean;
   setShortcutsVisible: (visible: boolean) => void;
+  cloudShellVisible: boolean;
+  setCloudShellVisible: (visible: boolean) => void;
   splitPanelPreferences: AppLayoutProps.SplitPanelPreferences;
   setSplitPanelPreferences: (preferences: AppLayoutProps.SplitPanelPreferences) => void;
 }
@@ -45,6 +47,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   const [density, setDensityState] = useState<DensityMode>("comfortable");
   const [navigationOpen, setNavigationOpen] = useState(true);
   const [shortcutsVisible, setShortcutsVisible] = useState(false);
+  const [cloudShellVisible, setCloudShellVisible] = useState(false);
   const [splitPanelPreferences, setSplitPanelPreferences] = useState<AppLayoutProps.SplitPanelPreferences>({
     position: "side",
   });
@@ -81,10 +84,12 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
       setNavigationOpen,
       shortcutsVisible,
       setShortcutsVisible,
+      cloudShellVisible,
+      setCloudShellVisible,
       splitPanelPreferences,
       setSplitPanelPreferences,
     }),
-    [theme, density, setTheme, setDensity, navigationOpen, shortcutsVisible, splitPanelPreferences],
+    [theme, density, setTheme, setDensity, navigationOpen, shortcutsVisible, cloudShellVisible, splitPanelPreferences],
   );
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;
 }

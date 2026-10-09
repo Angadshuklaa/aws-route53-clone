@@ -24,7 +24,7 @@ export function ComingSoon({ title, description, breadcrumbs = [] }: ComingSoonP
   const router = useRouter();
   return (
     <ConsoleLayout
-      breadcrumbs={[{ text: "Route 53", href: ROUTES.dashboard }, ...breadcrumbs, { text: title, href: "#" }]}
+      breadcrumbs={[{ text: "Route 53", href: ROUTES.dashboard }, ...breadcrumbs, { text: title, href: "" }]}
       content={
         <ContentLayout
           header={
