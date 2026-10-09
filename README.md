@@ -16,8 +16,9 @@ the AWS console's look and workflows. Every change goes through a FastAPI backen
 | API docs (OpenAPI) | https://alpha12.eu.pythonanywhere.com/api/docs |
 | Source | https://github.com/Angadshuklaa/aws-route53-clone |
 
-**Demo sign-in:** Account ID `123456789012`, IAM user name `demo`, password `Route53Demo!`. The sign-in
-page also has a **Fill in demo credentials** button.
+The site opens on a product page. Choose **Sign in to console**, then sign in as the demo IAM user:
+account ID `123456789012`, IAM username `demo`, password `Route53Demo!`. The **Use demo credentials**
+button on the sign-in page fills these in.
 
 Notes about the public demo:
 - Everyone shares one demo account, so you may see other visitors' changes. The demo starts with 12
@@ -40,9 +41,32 @@ Notes about the public demo:
 
 ## Features
 
-**Authentication (mocked):** sign-in page with one demo IAM user. Sessions are stored server-side in
-SQLite and identified by an HTTP-only cookie, so they survive reloads and new tabs. Sign out deletes the
-session. Protected pages redirect to sign-in and return you to the page you asked for.
+**Look and feel.** The UI follows the real AWS experience at each step:
+- **Product page (`/`).** Laid out like aws.amazon.com/route53: a dark utility bar, the main navigation
+  with **Sign in to console**, a floating product bar that stays visible and highlights the section in
+  view, a gradient hero, Benefits / How it works / Use cases / FAQs accordions, image-style cards, a
+  feedback banner and a dark footer.
+- **Sign-in (`/login`).** Modelled on the AWS console sign-in: user-type tiles (root user or IAM user),
+  account ID, then **Sign in as IAM user** with username and password, an orange primary button and a
+  promo panel.
+- **Console (`/route53/v2/...`).** Built with Cloudscape, the design system the AWS console uses. The
+  header has unified search (with an Option+S / Alt+S shortcut), CloudShell, notifications, support,
+  settings, a **Global** Region indicator and a `demo @ 1234-5678-9012` account menu. Below it are the
+  full Route 53 side navigation and a console footer.
+
+AWS logos, customer logos, photos and marketing copy aren't copied. The pages use this project's own
+mark and text, and they say they're a demo. A public look-alike carrying AWS branding next to a
+sign-in form could be used for phishing.
+
+**Authentication (mocked):** two-step sign-in with one demo IAM user. Root-user sign-in explains that
+only the IAM user exists. Sessions are stored server-side in SQLite and identified by an HTTP-only
+cookie, so they survive reloads and new tabs. **Remember this account** stores only the account ID, in
+the browser. Sign out deletes the session and returns to the product page. Protected pages redirect to
+sign-in and return you to the page you asked for.
+
+**Dashboard:** a Route 53 dashboard with live counts of hosted zones (public and private) and records,
+the most recently created zones, and records by type. The traffic management, availability monitoring
+and domain registration areas are shown as coming soon.
 
 **Hosted zones**
 - Paginated table with server-side search (name, ID or description), a type filter, sortable columns,
@@ -69,14 +93,16 @@ session. Protected pages redirect to sign-in and return you to the page you aske
   alongside other records, apex NS/SOA can't be deleted, and records can only be reached through their
   own zone.
 
-**Console shell:** top navigation with a working hosted-zone search, a Global region indicator, a
-settings menu and an account menu. Side navigation, breadcrumbs, info links that open help panels, flash
-notifications for every create, update, delete and failure, and loading, empty, no-match and error
-states throughout.
+**Console shell:** the header described above. Search filters hosted zones. The notifications menu
+lists recent activity, and the support menu links to the shortcuts, documentation and API reference.
+There are also breadcrumbs, info links that open help panels, flash notifications for every create,
+update, delete and failure, and loading, empty, no-match and error states throughout.
 
-**Placeholders:** Dashboard, Health checks, Profiles, Traffic policies and Resolver (VPCs, inbound and
-outbound endpoints, rules, query logging) are reachable from the navigation. Each shows a "Coming soon"
-page in the console style.
+**Placeholders:** Health checks, Profiles, IP-based routing (CIDR collections), Traffic flow (Traffic
+policies, Policy records), Domains (Registered domains, Requests), Resolver (VPCs, inbound and outbound
+endpoints, rules, query logging) and DNS Firewall (rule groups, domain lists) are reachable from the side
+navigation. Each opens a "Coming soon" page in the console style. CloudShell opens a "coming soon"
+dialog.
 
 **Bonus features (all implemented)**
 
@@ -85,7 +111,7 @@ page in the console style.
 | BIND import | **Import zone file** on the Records tab. Upload or paste a zone file. Supports `$ORIGIN`, `$TTL`, `@`, relative names, blank owners and multi-line records. Reports created, updated, skipped and failed entries with line numbers; existing records are skipped unless you choose to overwrite them. |
 | Export | **Export zone file** downloads a BIND `.zone` file or a JSON document of the zone and its records. A BIND export can be imported again without changes. |
 | Dark mode | Settings menu → Visual mode. Stored in the browser and applied before first paint. A Compact density option is there too. |
-| Keyboard shortcuts | `/` focuses the table filter, `c` creates, `r` refreshes, `g` then `h` opens Hosted zones, `?` lists the shortcuts. They're ignored while you type in a field or have a dialog open. |
+| Keyboard shortcuts | Option+S / Alt+S focuses the console search, `/` focuses the table filter, `c` creates, `r` refreshes, `g` then `h` opens Hosted zones, `?` lists the shortcuts. Single-key shortcuts are ignored while you type in a field or have a dialog open. |
 | Bulk operations | Select several records and delete them together. Apex NS/SOA records are skipped, and partial failures are listed per record. |
 
 ## Tech stack
@@ -108,8 +134,9 @@ page in the console style.
  (Vercel)                                       (uvicorn)              (WAL, foreign keys on)
 ```
 
-- **Frontend:** Next.js renders the console pages. The `/route53/v2/*` routes sit behind a client-side
-  auth guard that calls `GET /api/auth/me`. All data access goes through `lib/api/` (a typed `fetch`
+- **Frontend:** Next.js serves the public product page (`/`), the sign-in page (`/login`) and the console
+  (`/route53/v2/*`). The console routes sit behind a client-side auth guard that calls
+  `GET /api/auth/me`. All data access goes through `lib/api/` (a typed `fetch`
   wrapper); no zone or record data is hard-coded or kept only in React state.
 - **Same-origin API:** `next.config.ts` rewrites `/api/*` to the FastAPI service (`API_PROXY_TARGET`).
   The browser therefore only talks to the frontend's own origin, and the session cookie is first-party
@@ -162,7 +189,7 @@ in with the demo credentials:
 | IAM user name | `demo` |
 | Password | `Route53Demo!` |
 
-The sign-in page also has a **Fill in demo credentials** button.
+The sign-in page also has a **Use demo credentials** button.
 
 ## Configuration
 
@@ -308,6 +335,11 @@ Record payloads:
 Responses include `values` (structured), `formatted_values` (as Route 53 displays them, e.g.
 `10 60 5060 sip.example.com` or `"v=spf1 -all"`), `is_system`, `routing_policy` and timestamps.
 
+### Dashboard
+
+`GET /api/dashboard` returns `{"hosted_zones": {"total", "public", "private"}, "record_count",
+"records_by_type": {"A": n, ...}, "recent_zones": [...]}` for the console dashboard.
+
 ### Operations
 
 `GET /api/health` returns `{"status": "ok", "database": "ok", "version", "time"}`, or 503 when the
@@ -437,8 +469,12 @@ The end-to-end suite signs in through the UI and covers:
 - validation from the client and from the API
 - search combined with the type filter, bulk delete, BIND import with an invalid line, and export
 - isolation between zones
-- navigation to every placeholder section, top-navigation search, dark mode, keyboard shortcuts, and a
-  phone-sized viewport
+- the public product page: accordions, product-bar links, signed-in state, the feedback banner and the
+  mobile menu
+- two-step sign-in, including root-user handling, wrong credentials and validation
+- the dashboard's live counts, every navigation section and placeholder, header utilities (CloudShell,
+  support menu, notifications), Option+S search, dark mode, keyboard shortcuts, and phone-sized
+  viewports
 
 Test zones are prefixed `e2e-` and removed afterwards.
 
@@ -446,10 +482,10 @@ Test zones are prefixed `e2e-` and removed afterwards.
 
 | Check | Result |
 | --- | --- |
-| Backend `pytest` | 66 passed |
+| Backend `pytest` | 68 passed |
 | Frontend `npm run lint`, `npm run typecheck`, `next build` | clean |
-| Playwright against local servers | 15 passed (14 desktop, 1 mobile) |
-| Playwright against **https://aws-route53-clone-two.vercel.app** | 15 passed (14 desktop, 1 mobile) |
+| Playwright against local servers | 22 passed (20 desktop, 2 mobile) |
+| Playwright against **https://aws-route53-clone-two.vercel.app** | 22 passed (20 desktop, 2 mobile) |
 | Production session cookie | `HttpOnly; Secure; SameSite=lax`, first-party on the Vercel domain |
 | Production CORS | Preflight from the Vercel origin allowed with credentials; other origins rejected (400) |
 | Persistence across a backend restart | A test zone and TXT record created through the public site were still present after the web app was reloaded |
