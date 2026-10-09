@@ -51,9 +51,11 @@ function Counter({ label, value, href, note, follow }: CounterProps) {
   return (
     <div>
       <Box variant="awsui-key-label">{label}</Box>
-      <Link variant="awsui-value-large" href={href} onFollow={follow} ariaLabel={`${label}: ${value}`}>
-        {value}
-      </Link>
+      <div className="dashboard-counter-value">
+        <Link variant="awsui-value-large" href={href} onFollow={follow} ariaLabel={`${label}: ${value}`}>
+          {value}
+        </Link>
+      </div>
       <Box variant="small" color="text-body-secondary" display="block">
         {note}
       </Box>

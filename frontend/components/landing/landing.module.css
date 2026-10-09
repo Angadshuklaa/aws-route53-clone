@@ -309,6 +309,7 @@
 }
 
 .subNav {
+  position: relative;
   pointer-events: auto;
   background: #ffffff;
   border: 1px solid #d5dbdb;
@@ -367,7 +368,6 @@
 }
 
 .featuresWrap {
-  position: relative;
   display: flex;
 }
 

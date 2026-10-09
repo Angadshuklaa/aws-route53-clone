@@ -257,6 +257,7 @@ export function LandingPage() {
   const { status, user, logout } = useAuth();
   const [activeSection, setActiveSection] = useState<string>("overview");
   const [featuresOpen, setFeaturesOpen] = useState(false);
+  const [featuresLeft, setFeaturesLeft] = useState(0);
   const [accountOpen, setAccountOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -469,12 +470,20 @@ export function LandingPage() {
                 className={`${styles.subNavLink} ${activeSection === "features" ? styles.subNavLinkActive : ""}`}
                 aria-expanded={featuresOpen}
                 aria-haspopup="true"
-                onClick={() => setFeaturesOpen((open) => !open)}
+                onClick={(event) => {
+                  const button = event.currentTarget;
+                  const nav = button.closest("nav");
+                  if (nav) {
+                    const left = button.getBoundingClientRect().left - nav.getBoundingClientRect().left - nav.clientLeft;
+                    setFeaturesLeft(Math.max(0, Math.min(left, nav.clientWidth - 260)));
+                  }
+                  setFeaturesOpen((open) => !open);
+                }}
               >
                 Features <ChevronDown width={14} height={14} />
               </button>
               {featuresOpen && (
-                <div className={styles.featuresMenu}>
+                <div className={styles.featuresMenu} style={{ left: featuresLeft }}>
                   {FEATURE_LINKS.map((link) => (
                     <a key={link.label} href={link.href} onClick={() => setFeaturesOpen(false)}>
                       {link.label}
