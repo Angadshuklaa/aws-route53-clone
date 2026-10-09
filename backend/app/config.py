@@ -58,6 +58,22 @@ class Settings:
             raise ValueError("SESSION_TTL_HOURS must be positive")
 
 
+def load_env_file(path: Path) -> None:
+    """Load KEY=VALUE lines into os.environ without overriding existing variables.
+
+    Used by entry points (like wsgi.py) whose host can't set environment
+    variables for the process.
+    """
+    if not path.is_file():
+        return
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+
 def load_settings(**overrides: object) -> Settings:
     environment = os.getenv("APP_ENV", "development").strip().lower()
     is_production = environment == "production"
