@@ -7,7 +7,23 @@ the AWS console's look and workflows. Every change goes through a FastAPI backen
 > This is a demo. It isn't affiliated with Amazon Web Services, doesn't talk to AWS, and doesn't publish
 > DNS anywhere. Sign-in, IAM, accounts and billing are mocked. Never enter real AWS credentials.
 
-<!-- LIVE-DEMO -->
+## Live demo
+
+| | URL |
+| --- | --- |
+| **Application** | **https://aws-route53-clone-two.vercel.app** |
+| API (FastAPI) | https://alpha12.eu.pythonanywhere.com/api/health |
+| API docs (OpenAPI) | https://alpha12.eu.pythonanywhere.com/api/docs |
+| Source | https://github.com/Angadshuklaa/aws-route53-clone |
+
+**Demo sign-in:** Account ID `123456789012`, IAM user name `demo`, password `Route53Demo!`. The sign-in
+page also has a **Fill in demo credentials** button.
+
+Notes about the public demo:
+- Everyone shares one demo account, so you may see other visitors' changes. The demo starts with 12
+  hosted zones whose names and addresses come from documentation-reserved ranges.
+- The backend runs on PythonAnywhere's free plan, which needs a one-click renewal each month
+  (see [Deployment](#deployment)).
 
 ## Contents
 
@@ -317,7 +333,87 @@ curl -c jar -H 'Content-Type: application/json' \
 curl -b jar 'http://127.0.0.1:8000/api/hosted-zones?search=example&page_size=5'
 ```
 
-<!-- DEPLOYMENT -->
+## Deployment
+
+The public demo runs entirely on free plans:
+
+| Part | Host | Details |
+| --- | --- | --- |
+| Frontend | Vercel (Hobby) | Next.js build. `API_PROXY_TARGET=https://alpha12.eu.pythonanywhere.com` is set for Production and Preview. `frontend/vercel.json` pins the framework to Next.js. |
+| Backend | PythonAnywhere (free Beginner, EU) | FastAPI served by PythonAnywhere's uWSGI through [`backend/wsgi.py`](backend/wsgi.py) (a2wsgi adapter). HTTPS is enforced. |
+| Database | SQLite at `/home/Alpha12/route53-data/route53.db` | Stored on the account's persistent home disk, outside the git checkout, so deploys never replace it. |
+
+### Why this layout
+
+- **Same-origin cookies.** The browser only talks to `aws-route53-clone-two.vercel.app`, and Vercel
+  proxies `/api/*` to PythonAnywhere. The session cookie (`HttpOnly; Secure; SameSite=Lax`) is
+  therefore first-party, so it works in Safari and other browsers that block third-party cookies.
+  The backend also allows that origin in `CORS_ALLOWED_ORIGINS`, with credentials, for direct calls;
+  other origins are rejected.
+- **Durable SQLite.** Free container and serverless hosts, such as Render's free tier and Vercel
+  functions, have ephemeral disks, where SQLite data would be lost on restart. PythonAnywhere's home directories are persistent.
+- **WSGI on the free plan.** PythonAnywhere's free plan serves WSGI apps, so `backend/wsgi.py` wraps
+  FastAPI with a2wsgi. uWSGI imports the app in a master process and then forks, so the wrapper is
+  created lazily inside the worker, and database connections opened before the fork are discarded.
+  Lifespan events don't run under WSGI, so migrations run when the module is imported.
+
+### Backend (PythonAnywhere)
+
+1. Create a free account, open a **Bash console**, and run:
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/Angadshuklaa/aws-route53-clone/main/backend/deploy/pythonanywhere-setup.sh | bash
+   ```
+   [The script](backend/deploy/pythonanywhere-setup.sh) clones the repository, builds
+   `backend/.venv` with Python 3.13, writes `backend/.env` with production settings (only if it
+   doesn't already exist), and applies migrations. On a new database it also seeds the demo data.
+2. Create a **Manual configuration** web app for Python 3.13, either from the Web tab or with the API
+   (`POST /api/v0/user/<user>/webapps/`). Then set:
+   - Virtualenv: `/home/<user>/aws-route53-clone/backend/.venv`
+   - Source code: `/home/<user>/aws-route53-clone/backend`
+   - Force HTTPS: on
+   - WSGI file (`/var/www/<user>_eu_pythonanywhere_com_wsgi.py`):
+     ```python
+     import sys
+     BACKEND_DIR = "/home/<user>/aws-route53-clone/backend"
+     if BACKEND_DIR not in sys.path:
+         sys.path.insert(0, BACKEND_DIR)
+     from wsgi import application  # noqa: E402,F401
+     ```
+3. Production settings, in `backend/.env` on the server:
+   ```
+   APP_ENV=production
+   DATABASE_PATH=/home/<user>/route53-data/route53.db
+   SESSION_COOKIE_SECURE=true
+   SESSION_COOKIE_SAMESITE=lax
+   SEED_DEMO_DATA=true
+   CORS_ALLOWED_ORIGINS=https://aws-route53-clone-two.vercel.app
+   ```
+4. **Deploying updates:** run the same setup command again, then reload the web app (Web tab, or
+   `POST /api/v0/user/<user>/webapps/<domain>/reload/`). The script pulls the code and updates
+   dependencies. It leaves `backend/.env` and `~/route53-data` alone, and migrations only apply
+   versions that haven't run yet.
+5. **Monthly renewal (free plan):** PythonAnywhere disables free web apps after a month unless someone
+   clicks **"Run until 1 month from today"** on the Web tab. The current deadline is **2026-11-09**.
+   Disabling the web app doesn't delete any files, so the database is still there when you renew.
+
+### Frontend (Vercel)
+
+```bash
+cd frontend
+vercel link                                   # once
+vercel env add API_PROXY_TARGET production    # value: https://alpha12.eu.pythonanywhere.com
+vercel deploy --prod
+```
+
+Vercel can also deploy on every push once the Git integration is connected (`vercel git connect`,
+root directory `frontend`). The build fails if `API_PROXY_TARGET` is missing, so it can't fall back to
+localhost.
+
+### Other hosts
+
+`backend/Dockerfile` and [`backend/scripts/start.sh`](backend/scripts/start.sh) run the API under
+uvicorn on any container host that has a persistent volume, such as Fly.io or Railway. Mount the
+volume at `/data`; the image sets `DATABASE_PATH=/data/route53.db`.
 
 ## Testing
 
@@ -346,7 +442,18 @@ The end-to-end suite signs in through the UI and covers:
 
 Test zones are prefixed `e2e-` and removed afterwards.
 
-<!-- TEST-RESULTS -->
+### Verified results (2026-10-09)
+
+| Check | Result |
+| --- | --- |
+| Backend `pytest` | 66 passed |
+| Frontend `npm run lint`, `npm run typecheck`, `next build` | clean |
+| Playwright against local servers | 15 passed (14 desktop, 1 mobile) |
+| Playwright against **https://aws-route53-clone-two.vercel.app** | 15 passed (14 desktop, 1 mobile) |
+| Production session cookie | `HttpOnly; Secure; SameSite=lax`, first-party on the Vercel domain |
+| Production CORS | Preflight from the Vercel origin allowed with credentials; other origins rejected (400) |
+| Persistence across a backend restart | A test zone and TXT record created through the public site were still present after the web app was reloaded |
+| Persistence across a redeploy | After re-running the deploy script and reloading: still 13 zones, the test record intact, schema reported up to date, no re-seeding |
 
 ## Known limitations
 
@@ -358,3 +465,5 @@ Test zones are prefixed `e2e-` and removed afterwards.
 - TXT and CAA values are limited to printable ASCII so that exports are valid zone files.
 - SQLite with a single API process suits a demo. A multi-instance deployment would need a different
   database.
+- The free PythonAnywhere web app must be renewed monthly (see [Deployment](#deployment)), and
+  free-plan CPU limits can make the first request after a quiet period slower.

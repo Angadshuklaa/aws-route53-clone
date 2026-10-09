@@ -38,6 +38,7 @@ test.describe("console shell", () => {
     await expect(page.locator("body")).toHaveClass(/awsui-dark-mode/);
     await page.reload();
     await expect(page.locator("body")).toHaveClass(/awsui-dark-mode/);
+    await expect(page.getByRole("heading", { name: /Hosted zones/, level: 1 })).toBeVisible();
 
     await page.keyboard.press("?");
     await expect(visible(page.getByRole("dialog"), "Keyboard shortcuts")).toBeVisible();

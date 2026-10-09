@@ -146,7 +146,7 @@ export function HostedZonesPage({ initialSearch }: { initialSearch: string }) {
             stickyHeader
             enableKeyboardNavigation
             items={error ? [] : items}
-            loading={loading && !data}
+            loading={loading}
             loadingText="Loading hosted zones"
             trackBy="id"
             columnDefinitions={columns}
@@ -180,7 +180,7 @@ export function HostedZonesPage({ initialSearch }: { initialSearch: string }) {
                 description="Hosted zones are containers for the records that route traffic for a domain and its subdomains."
                 actions={
                   <SpaceBetween direction="horizontal" size="xs">
-                    <Button iconName="refresh" ariaLabel="Refresh hosted zones" onClick={reload} loading={loading && Boolean(data)} />
+                    <Button iconName="refresh" ariaLabel="Refresh hosted zones" onClick={reload} />
                     <Button disabled={!selectedZone} onClick={() => selectedZone && router.push(ROUTES.zone(selectedZone.id))}>
                       View details
                     </Button>

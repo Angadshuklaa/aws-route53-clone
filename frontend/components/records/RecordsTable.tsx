@@ -183,7 +183,7 @@ export function RecordsTable({
       variant="container"
       enableKeyboardNavigation
       items={error ? [] : items}
-      loading={loading && !data}
+      loading={loading}
       loadingText="Loading records"
       trackBy="id"
       columnDefinitions={columns}
@@ -216,7 +216,7 @@ export function RecordsTable({
           description="Records define how you want to route traffic for the domain and its subdomains."
           actions={
             <SpaceBetween direction="horizontal" size="xs">
-              <Button iconName="refresh" ariaLabel="Refresh records" onClick={reload} loading={loading && Boolean(data)} />
+              <Button iconName="refresh" ariaLabel="Refresh records" onClick={reload} />
               <Button disabled={!single} onClick={() => single && onEdit(single)}>
                 Edit record
               </Button>

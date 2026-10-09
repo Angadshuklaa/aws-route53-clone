@@ -99,14 +99,15 @@ test.describe("hosted zones", () => {
 
     await choose(page, page, "Filter by hosted zone type", "Private");
     const rows = page.locator("tbody tr");
-    await expect(rows.first()).toBeVisible();
-    for (const text of await rows.allInnerTexts()) expect(text).toContain("Private");
+    await expect(rows.filter({ hasText: "Private" }).first()).toBeVisible();
+    await expect(rows.filter({ hasText: "Public" })).toHaveCount(0);
 
     await choose(page, page, "Filter by hosted zone type", "All types");
     const total = Number((await page.getByRole("heading", { name: /Hosted zones/, level: 1 }).innerText()).match(/\((\d+)\)/)?.[1]);
     if (total > 10) {
       await page.getByRole("button", { name: "Page 2 of all pages" }).click();
-      await expect(rows.first()).toBeVisible();
+      await expect(page.getByRole("button", { name: "Page 2 of all pages" })).toHaveAttribute("aria-current", "true");
+      await expect(rows.getByRole("link").first()).toBeVisible();
       expect(await rows.count()).toBeLessThanOrEqual(10);
     }
   });
