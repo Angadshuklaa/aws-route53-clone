@@ -1,25 +1,27 @@
 "use client";
 
 import Alert from "@cloudscape-design/components/alert";
-import Badge from "@cloudscape-design/components/badge";
 import Box from "@cloudscape-design/components/box";
 import Button from "@cloudscape-design/components/button";
+import ColumnLayout from "@cloudscape-design/components/column-layout";
 import Container from "@cloudscape-design/components/container";
 import ContentLayout from "@cloudscape-design/components/content-layout";
 import Grid from "@cloudscape-design/components/grid";
 import Header from "@cloudscape-design/components/header";
 import HelpPanel from "@cloudscape-design/components/help-panel";
+import KeyValuePairs from "@cloudscape-design/components/key-value-pairs";
 import Link from "@cloudscape-design/components/link";
 import SpaceBetween from "@cloudscape-design/components/space-between";
+import StatusIndicator from "@cloudscape-design/components/status-indicator";
 import Table from "@cloudscape-design/components/table";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 
 import { useFollow } from "@/components/common/navigation";
 import { TableEmptyState } from "@/components/common/TableStates";
 import { ConsoleLayout } from "@/components/layout/ConsoleLayout";
 import { errorMessage, isAbortError } from "@/lib/api/client";
-import { dashboardApi } from "@/lib/api/endpoints";
+import { dashboardApi, healthApi } from "@/lib/api/endpoints";
 import { ALL_RECORD_TYPES } from "@/lib/dns";
 import { formatDateTime, zoneTypeLabel } from "@/lib/format";
 import { placeholderHref, ROUTES } from "@/lib/routes";
@@ -37,33 +39,25 @@ function DashboardHelp() {
   );
 }
 
-interface AreaProps {
-  title: string;
-  description: string;
-  count: ReactNode;
-  unit: string;
-  footer: ReactNode;
-  comingSoon?: boolean;
+interface CounterProps {
+  label: string;
+  value: number | string;
+  href: string;
+  note: string;
+  follow: ReturnType<typeof useFollow>;
 }
 
-function Area({ title, description, count, unit, footer, comingSoon }: AreaProps) {
+function Counter({ label, value, href, note, follow }: CounterProps) {
   return (
-    <Container
-      fitHeight
-      header={
-        <Header variant="h2" description={description} actions={comingSoon ? <Badge color="grey">Coming soon</Badge> : undefined}>
-          {title}
-        </Header>
-      }
-      footer={footer}
-    >
-      <SpaceBetween size="xxs">
-        <Box variant="awsui-value-large" tagOverride="p">
-          {count}
-        </Box>
-        <Box color="text-body-secondary">{unit}</Box>
-      </SpaceBetween>
-    </Container>
+    <div>
+      <Box variant="awsui-key-label">{label}</Box>
+      <Link variant="awsui-value-large" href={href} onFollow={follow} ariaLabel={`${label}: ${value}`}>
+        {value}
+      </Link>
+      <Box variant="small" color="text-body-secondary" display="block">
+        {note}
+      </Box>
+    </div>
   );
 }
 
@@ -74,6 +68,7 @@ export function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const [toolsOpen, setToolsOpen] = useState(false);
+  const [health, setHealth] = useState<"checking" | "ok" | "degraded">("checking");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -84,6 +79,12 @@ export function DashboardPage() {
       },
       (err: unknown) => {
         if (!isAbortError(err)) setError(errorMessage(err));
+      },
+    );
+    healthApi.check(controller.signal).then(
+      (result) => setHealth(result.status === "ok" ? "ok" : "degraded"),
+      (err: unknown) => {
+        if (!isAbortError(err)) setHealth("degraded");
       },
     );
     return () => controller.abort();
@@ -112,14 +113,10 @@ export function DashboardPage() {
                   Info
                 </Link>
               }
-              description="Route 53 is a highly available DNS service. Manage hosted zones and the records that route traffic for your domains."
               actions={
-                <SpaceBetween direction="horizontal" size="xs">
-                  <Button iconName="refresh" ariaLabel="Refresh dashboard" onClick={() => setReloadKey((key) => key + 1)} />
-                  <Button variant="primary" onClick={() => router.push(ROUTES.createHostedZone)}>
-                    Create hosted zone
-                  </Button>
-                </SpaceBetween>
+                <Button variant="primary" onClick={() => router.push(ROUTES.createHostedZone)}>
+                  Create hosted zone
+                </Button>
               }
             >
               Route 53 Dashboard
@@ -136,69 +133,53 @@ export function DashboardPage() {
                 {error}
               </Alert>
             )}
-            <Grid
-              gridDefinition={[
-                { colspan: { default: 12, s: 6, l: 3 } },
-                { colspan: { default: 12, s: 6, l: 3 } },
-                { colspan: { default: 12, s: 6, l: 3 } },
-                { colspan: { default: 12, s: 6, l: 3 } },
-              ]}
-            >
-              <Area
-                title="DNS management"
-                description="Route traffic for your domains with hosted zones and records."
-                count={
-                  <Link href={ROUTES.hostedZones} onFollow={follow} fontSize="display-l" ariaLabel="Hosted zones">
-                    {value(summary?.hosted_zones.total)}
-                  </Link>
+            <Grid gridDefinition={[{ colspan: { default: 12, m: 8 } }, { colspan: { default: 12, m: 4 } }]}>
+              <Container
+                fitHeight
+                header={
+                  <Header variant="h2" description="Route 53 is a global service.">
+                    Service overview
+                  </Header>
                 }
-                unit={
-                  summary
-                    ? `Hosted zones (${summary.hosted_zones.public} public, ${summary.hosted_zones.private} private) · ${summary.record_count} records`
-                    : "Hosted zones"
-                }
-                footer={
-                  <Link href={ROUTES.hostedZones} onFollow={follow}>
-                    View hosted zones
-                  </Link>
-                }
-              />
-              <Area
-                title="Traffic management"
-                description="Create traffic policies with traffic flow."
-                count={0}
-                unit="Traffic policies"
-                comingSoon
-                footer={
-                  <Link href={placeholderHref("trafficpolicies")} onFollow={follow}>
-                    Traffic policies
-                  </Link>
-                }
-              />
-              <Area
-                title="Availability monitoring"
-                description="Check the health of your resources."
-                count={0}
-                unit="Health checks"
-                comingSoon
-                footer={
-                  <Link href={placeholderHref("healthchecks")} onFollow={follow}>
-                    Health checks
-                  </Link>
-                }
-              />
-              <Area
-                title="Domain registration"
-                description="Register and manage domain names."
-                count={0}
-                unit="Registered domains"
-                comingSoon
-                footer={
-                  <Link href={placeholderHref("domains/registered")} onFollow={follow}>
-                    Registered domains
-                  </Link>
-                }
-              />
+              >
+                <ColumnLayout columns={4} variant="text-grid" minColumnWidth={130}>
+                  <Counter
+                    label="Hosted zones"
+                    value={value(summary?.hosted_zones.total)}
+                    href={ROUTES.hostedZones}
+                    note={summary ? `${summary.hosted_zones.public} public, ${summary.hosted_zones.private} private` : "DNS management"}
+                    follow={follow}
+                  />
+                  <Counter label="Traffic policies" value={0} href={placeholderHref("trafficpolicies")} note="Coming soon" follow={follow} />
+                  <Counter label="Health checks" value={0} href={placeholderHref("healthchecks")} note="Coming soon" follow={follow} />
+                  <Counter
+                    label="Registered domains"
+                    value={0}
+                    href={placeholderHref("domains/registered")}
+                    note="Coming soon"
+                    follow={follow}
+                  />
+                </ColumnLayout>
+              </Container>
+              <Container fitHeight header={<Header variant="h2">Service health</Header>}>
+                <KeyValuePairs
+                  columns={1}
+                  items={[
+                    { label: "Region", value: "Global" },
+                    {
+                      label: "Status",
+                      value:
+                        health === "checking" ? (
+                          <StatusIndicator type="loading">Checking</StatusIndicator>
+                        ) : health === "ok" ? (
+                          <StatusIndicator type="success">Service is operating normally</StatusIndicator>
+                        ) : (
+                          <StatusIndicator type="error">Service is unavailable</StatusIndicator>
+                        ),
+                    },
+                  ]}
+                />
+              </Container>
             </Grid>
 
             <Grid gridDefinition={[{ colspan: { default: 12, m: 8 } }, { colspan: { default: 12, m: 4 } }]}>

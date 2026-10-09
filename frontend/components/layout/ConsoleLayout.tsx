@@ -1,6 +1,7 @@
 "use client";
 
-import AppLayout, { type AppLayoutProps } from "@cloudscape-design/components/app-layout";
+import type { AppLayoutProps } from "@cloudscape-design/components/app-layout";
+import AppLayoutToolbar from "@cloudscape-design/components/app-layout-toolbar";
 import BreadcrumbGroup, { type BreadcrumbGroupProps } from "@cloudscape-design/components/breadcrumb-group";
 import Flashbar from "@cloudscape-design/components/flashbar";
 import { usePathname } from "next/navigation";
@@ -37,10 +38,11 @@ export function ConsoleLayout({
   const pathname = usePathname();
   const follow = useFollow();
   const { items } = useNotifications();
-  const { navigationOpen, setNavigationOpen, splitPanelPreferences, setSplitPanelPreferences } = usePreferences();
+  const { navigationOpen, setNavigationOpen, splitPanelPreferences, setSplitPanelPreferences, splitPanelSize, setSplitPanelSize } =
+    usePreferences();
 
   return (
-    <AppLayout
+    <AppLayoutToolbar
       headerSelector="#top-nav"
       footerSelector="#console-footer"
       navigation={<RouteSideNav pathname={pathname} />}
@@ -58,6 +60,8 @@ export function ConsoleLayout({
       splitPanel={splitPanel}
       splitPanelOpen={splitPanelOpen ?? false}
       onSplitPanelToggle={({ detail }) => onSplitPanelToggle?.(detail.open)}
+      splitPanelSize={splitPanelSize}
+      onSplitPanelResize={({ detail }) => setSplitPanelSize(detail.size)}
       splitPanelPreferences={splitPanelPreferences}
       onSplitPanelPreferencesChange={({ detail }) => setSplitPanelPreferences(detail)}
     />

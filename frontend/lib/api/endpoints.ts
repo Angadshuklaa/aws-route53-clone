@@ -22,13 +22,19 @@ export const authApi = {
   me: (signal?: AbortSignal) => apiRequest<CurrentUser>("/api/auth/me", { signal }),
 };
 
+export const healthApi = {
+  check: (signal?: AbortSignal) =>
+    apiRequest<{ status: string; database: string; version: string }>("/api/health", { signal }),
+};
+
 export const dashboardApi = {
   summary: (signal?: AbortSignal) => apiRequest<DashboardSummary>("/api/dashboard", { signal }),
 };
 
 export interface ZoneListParams {
-  search?: string;
-  type?: ZoneType;
+  search?: string[];
+  names?: string[];
+  types?: ZoneType[];
   page: number;
   pageSize: number;
   sortBy: "name" | "type" | "record_count" | "created_at";
@@ -43,7 +49,8 @@ export const hostedZonesApi = {
       signal,
       query: {
         search: params.search,
-        type: params.type,
+        name: params.names,
+        type: params.types,
         page: params.page,
         page_size: params.pageSize,
         sort_by: params.sortBy,
@@ -61,8 +68,12 @@ export const hostedZonesApi = {
 };
 
 export interface RecordListParams {
-  search?: string;
+  search?: string[];
+  names?: string[];
+  values?: string[];
   types?: RecordType[];
+  routingPolicies?: string[];
+  alias?: boolean;
   page: number;
   pageSize: number;
   sortBy: "name" | "type" | "ttl";
@@ -77,7 +88,11 @@ export const recordsApi = {
       signal,
       query: {
         search: params.search,
+        name: params.names,
+        value: params.values,
         type: params.types,
+        routing_policy: params.routingPolicies,
+        alias: params.alias,
         page: params.page,
         page_size: params.pageSize,
         sort_by: params.sortBy,

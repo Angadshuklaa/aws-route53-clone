@@ -5,7 +5,7 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, Query, Response, status
 
 from app.api.deps import DbSession, ZoneFromPath, require_session
-from app.schemas.common import ERROR_RESPONSES, Page
+from app.schemas.common import ERROR_RESPONSES, Page, SearchTerm
 from app.schemas.dns_record import ZoneImportRequest, ZoneImportResult
 from app.schemas.hosted_zone import HostedZoneCreate, HostedZoneOut, HostedZoneUpdate, ZoneType
 from app.services import hosted_zone_service, zone_file_service
@@ -21,15 +21,23 @@ router = APIRouter(
 @router.get("", response_model=Page[HostedZoneOut])
 def list_hosted_zones(
     db: DbSession,
-    search: Annotated[str | None, Query(max_length=255, description="Matches name, ID or description")] = None,
-    type: Annotated[ZoneType | None, Query(description="PUBLIC or PRIVATE")] = None,  # noqa: A002
+    search: Annotated[list[SearchTerm] | None, Query(description="Matches name, ID or description; repeat to narrow")] = None,
+    name: Annotated[list[SearchTerm] | None, Query(description="Hosted zone name contains")] = None,
+    type: Annotated[list[ZoneType] | None, Query(description="PUBLIC or PRIVATE; repeat for either")] = None,  # noqa: A002
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 10,
     sort_by: Literal["name", "type", "record_count", "created_at"] = "name",
     sort_order: Literal["asc", "desc"] = "asc",
 ) -> Page[HostedZoneOut]:
     result = hosted_zone_service.list_zones(
-        db, search=search, zone_type=type, page=page, page_size=page_size, sort_by=sort_by, sort_order=sort_order
+        db,
+        search=search or [],
+        names=name or [],
+        zone_types=type or [],
+        page=page,
+        page_size=page_size,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
     return Page.build(result.items, result.total, page, page_size)
 

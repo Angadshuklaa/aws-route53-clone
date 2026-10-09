@@ -7,10 +7,9 @@ import CollectionPreferences, {
 import Header from "@cloudscape-design/components/header";
 import Link from "@cloudscape-design/components/link";
 import Pagination from "@cloudscape-design/components/pagination";
-import Select, { type SelectProps } from "@cloudscape-design/components/select";
+import PropertyFilter, { type PropertyFilterProps } from "@cloudscape-design/components/property-filter";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import Table, { type TableProps } from "@cloudscape-design/components/table";
-import TextFilter, { type TextFilterProps } from "@cloudscape-design/components/text-filter";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 
@@ -23,16 +22,23 @@ import { ConsoleLayout } from "@/components/layout/ConsoleLayout";
 import { hostedZonesApi, type ZoneListParams } from "@/lib/api/endpoints";
 import { formatDateTime, zoneTypeLabel } from "@/lib/format";
 import { useHotkeys } from "@/lib/hotkeys";
-import { useDebouncedValue, usePagedQuery, useStoredState } from "@/lib/hooks";
+import { usePagedQuery, useStoredState } from "@/lib/hooks";
+import { EMPTY_QUERY, freeTextQuery, tokenValues } from "@/lib/propertyFilter";
 import { ROUTES } from "@/lib/routes";
-import type { HostedZone, ZoneType } from "@/lib/types";
+import type { HostedZone, Page, ZoneType } from "@/lib/types";
 
 type SortField = ZoneListParams["sortBy"];
 
-const TYPE_OPTIONS: SelectProps.Option[] = [
-  { value: "", label: "All types" },
-  { value: "PUBLIC", label: "Public" },
-  { value: "PRIVATE", label: "Private" },
+const ZONE_TYPES: ZoneType[] = ["PUBLIC", "PRIVATE"];
+
+const FILTERING_PROPERTIES: PropertyFilterProps.FilteringProperty[] = [
+  { key: "name", propertyLabel: "Hosted zone name", groupValuesLabel: "Hosted zone name values", operators: [":"] },
+  { key: "type", propertyLabel: "Type", groupValuesLabel: "Type values", operators: ["="] },
+];
+
+const FILTERING_OPTIONS: PropertyFilterProps.FilteringOption[] = [
+  { propertyKey: "type", value: "Public" },
+  { propertyKey: "type", value: "Private" },
 ];
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100].map((value) => ({ value, label: `${value} hosted zones` }));
@@ -55,10 +61,9 @@ const DEFAULT_PREFERENCES: CollectionPreferencesProps.Preferences = {
 export function HostedZonesPage({ initialSearch }: { initialSearch: string }) {
   const router = useRouter();
   const follow = useFollow();
-  const filterRef = useRef<TextFilterProps.Ref>(null);
+  const filterRef = useRef<PropertyFilterProps.Ref>(null);
 
-  const [filteringText, setFilteringText] = useState(initialSearch);
-  const [typeOption, setTypeOption] = useState<SelectProps.Option>(TYPE_OPTIONS[0]);
+  const [query, setQuery] = useState<PropertyFilterProps.Query>(() => freeTextQuery(initialSearch));
   const [page, setPage] = useState(1);
   const [sorting, setSorting] = useState<{ field: SortField; descending: boolean }>({ field: "name", descending: false });
   const [preferences, setPreferences] = useStoredState("r53-zones-table", DEFAULT_PREFERENCES);
@@ -67,27 +72,37 @@ export function HostedZonesPage({ initialSearch }: { initialSearch: string }) {
   const [deleting, setDeleting] = useState<HostedZone | null>(null);
   const [toolsOpen, setToolsOpen] = useState(false);
 
-  const search = useDebouncedValue(filteringText.trim(), 300);
   const pageSize = preferences.pageSize ?? 10;
-  const zoneType = (typeOption.value || undefined) as ZoneType | undefined;
 
   const load = useCallback(
-    (signal: AbortSignal) =>
-      hostedZonesApi.list(
-        { search, type: zoneType, page, pageSize, sortBy: sorting.field, sortOrder: sorting.descending ? "desc" : "asc" },
+    (signal: AbortSignal): Promise<Page<HostedZone>> => {
+      const types = tokenValues(query, "type").map((value) => value.toUpperCase());
+      if (types.some((type) => !ZONE_TYPES.includes(type as ZoneType))) {
+        return Promise.resolve({ items: [], total: 0, page: 1, page_size: pageSize, total_pages: 1 });
+      }
+      return hostedZonesApi.list(
+        {
+          search: tokenValues(query),
+          names: tokenValues(query, "name"),
+          types: types as ZoneType[],
+          page,
+          pageSize,
+          sortBy: sorting.field,
+          sortOrder: sorting.descending ? "desc" : "asc",
+        },
         signal,
-      ),
-    [search, zoneType, page, pageSize, sorting],
+      );
+    },
+    [query, page, pageSize, sorting],
   );
   const { data, loading, error, reload } = usePagedQuery(load, { onPageOverflow: setPage });
 
   const items = data?.items ?? [];
   const selectedZone = selected.length === 1 ? items.find((zone) => zone.id === selected[0].id) : undefined;
-  const filtersActive = Boolean(filteringText || zoneType);
+  const filtersActive = query.tokens.length > 0;
 
   const clearFilters = () => {
-    setFilteringText("");
-    setTypeOption(TYPE_OPTIONS[0]);
+    setQuery(EMPTY_QUERY);
     setPage(1);
   };
 
@@ -177,7 +192,6 @@ export function HostedZonesPage({ initialSearch }: { initialSearch: string }) {
                     Info
                   </Link>
                 }
-                description="Hosted zones are containers for the records that route traffic for a domain and its subdomains."
                 actions={
                   <SpaceBetween direction="horizontal" size="xs">
                     <Button iconName="refresh" ariaLabel="Refresh hosted zones" onClick={reload} />
@@ -200,37 +214,21 @@ export function HostedZonesPage({ initialSearch }: { initialSearch: string }) {
               </Header>
             }
             filter={
-              <div className="filter-bar">
-                <div className="filter-bar__text">
-                  <TextFilter
-                    ref={filterRef}
-                    filteringText={filteringText}
-                    onChange={({ detail }) => {
-                      setFilteringText(detail.filteringText);
-                      setPage(1);
-                    }}
-                    filteringPlaceholder="Filter hosted zones by name, ID or description"
-                    filteringAriaLabel="Filter hosted zones"
-                    countText={search && data ? `${data.total} ${data.total === 1 ? "match" : "matches"}` : undefined}
-                  />
-                </div>
-                <div className="filter-bar__select">
-                  <Select
-                    selectedOption={typeOption}
-                    onChange={({ detail }) => {
-                      setTypeOption(detail.selectedOption);
-                      setPage(1);
-                    }}
-                    options={TYPE_OPTIONS}
-                    ariaLabel="Filter by hosted zone type"
-                  />
-                </div>
-                {filtersActive && (
-                  <Button variant="inline-link" onClick={clearFilters}>
-                    Clear filters
-                  </Button>
-                )}
-              </div>
+              <PropertyFilter
+                ref={filterRef}
+                query={query}
+                onChange={({ detail }) => {
+                  setQuery(detail);
+                  setPage(1);
+                }}
+                filteringProperties={FILTERING_PROPERTIES}
+                filteringOptions={FILTERING_OPTIONS}
+                filteringPlaceholder="Filter hosted zones by property or value"
+                filteringAriaLabel="Filter hosted zones"
+                countText={filtersActive && data ? `${data.total} ${data.total === 1 ? "match" : "matches"}` : undefined}
+                hideOperations
+                expandToViewport
+              />
             }
             pagination={
               <Pagination

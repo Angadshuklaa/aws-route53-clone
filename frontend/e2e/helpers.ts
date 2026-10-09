@@ -47,3 +47,10 @@ export function visible(scope: Page | Locator, text: string | RegExp): Locator {
 export function modal(page: Page): Locator {
   return page.getByRole("dialog");
 }
+
+/** Adds a property-filter token, e.g. "Type = Private" or free text. */
+export async function applyFilter(page: Page, label: string, text: string): Promise<void> {
+  const input = page.getByRole("combobox", { name: label });
+  await input.fill(text);
+  await input.press("Enter");
+}

@@ -38,6 +38,8 @@ interface PreferencesContextValue {
   setCloudShellVisible: (visible: boolean) => void;
   splitPanelPreferences: AppLayoutProps.SplitPanelPreferences;
   setSplitPanelPreferences: (preferences: AppLayoutProps.SplitPanelPreferences) => void;
+  splitPanelSize: number;
+  setSplitPanelSize: (size: number) => void;
 }
 
 const PreferencesContext = createContext<PreferencesContextValue | null>(null);
@@ -49,8 +51,9 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   const [shortcutsVisible, setShortcutsVisible] = useState(false);
   const [cloudShellVisible, setCloudShellVisible] = useState(false);
   const [splitPanelPreferences, setSplitPanelPreferences] = useState<AppLayoutProps.SplitPanelPreferences>({
-    position: "side",
+    position: "bottom",
   });
+  const [splitPanelSize, setSplitPanelSize] = useState(300);
 
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect */
@@ -87,8 +90,10 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
       setCloudShellVisible,
       splitPanelPreferences,
       setSplitPanelPreferences,
+      splitPanelSize,
+      setSplitPanelSize,
     }),
-    [theme, density, setTheme, setDensity, navigationOpen, shortcutsVisible, cloudShellVisible, splitPanelPreferences],
+    [theme, density, setTheme, setDensity, navigationOpen, shortcutsVisible, cloudShellVisible, splitPanelPreferences, splitPanelSize],
   );
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;
 }

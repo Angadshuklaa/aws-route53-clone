@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { choose, createZoneViaApi, deleteZonesViaApi, modal, signInToHostedZones, uniqueZoneName, visible } from "./helpers";
+import { applyFilter, choose, createZoneViaApi, deleteZonesViaApi, modal, signInToHostedZones, uniqueZoneName, visible } from "./helpers";
 
 test.describe("hosted zones", () => {
   test.beforeEach(async ({ page }) => signInToHostedZones(page));
@@ -25,7 +25,7 @@ test.describe("hosted zones", () => {
     const zoneUrl = page.url();
 
     await page.getByRole("link", { name: "Hosted zones" }).first().click();
-    await page.getByRole("searchbox", { name: "Filter hosted zones" }).fill(name);
+    await applyFilter(page, "Filter hosted zones", name);
     await expect(visible(page, "1 match")).toBeVisible();
     const row = page.getByRole("row", { name: new RegExp(name.replace(/\./g, "\\.")) });
     await expect(row).toContainText("Created by Playwright");
@@ -56,7 +56,7 @@ test.describe("hosted zones", () => {
     await expect(visible(page, `Hosted zone ${name} was deleted.`)).toBeVisible();
 
     await page.reload();
-    await page.getByRole("searchbox", { name: "Filter hosted zones" }).fill(name);
+    await applyFilter(page, "Filter hosted zones", name);
     await expect(visible(page, "No matches")).toBeVisible();
 
     await page.goto(zoneUrl);
@@ -86,17 +86,17 @@ test.describe("hosted zones", () => {
   });
 
   test("type filter, pagination and clearing filters", async ({ page }) => {
-    await page.getByRole("searchbox", { name: "Filter hosted zones" }).fill("zzz-nothing-matches");
+    await applyFilter(page, "Filter hosted zones", "zzz-nothing-matches");
     await expect(visible(page, "No matches")).toBeVisible();
     await page.getByRole("button", { name: "Clear filters" }).first().click();
-    await expect(page.getByRole("searchbox", { name: "Filter hosted zones" })).toHaveValue("");
+    await expect(visible(page, "No matches")).toBeHidden();
 
-    await choose(page, page, "Filter by hosted zone type", "Private");
+    await applyFilter(page, "Filter hosted zones", "Type = Private");
     const rows = page.locator("tbody tr");
     await expect(rows.filter({ hasText: "Private" }).first()).toBeVisible();
     await expect(rows.filter({ hasText: "Public" })).toHaveCount(0);
 
-    await choose(page, page, "Filter by hosted zone type", "All types");
+    await page.getByRole("button", { name: "Clear filters" }).first().click();
     const total = Number((await page.getByRole("heading", { name: /Hosted zones/, level: 1 }).innerText()).match(/\((\d+)\)/)?.[1]);
     if (total > 10) {
       await page.getByRole("button", { name: "Page 2 of all pages" }).click();

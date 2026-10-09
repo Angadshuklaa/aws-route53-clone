@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { choose, createZoneViaApi, deleteZonesViaApi, modal, signIn, uniqueZoneName, visible } from "./helpers";
+import { applyFilter, choose, createZoneViaApi, deleteZonesViaApi, modal, signIn, uniqueZoneName, visible } from "./helpers";
 
 type Fields = Record<string, string>;
 
@@ -78,7 +78,7 @@ test.describe("DNS records", () => {
       await expect(modal(page).getByLabel("TTL (seconds)")).toHaveValue("300");
       await fillValues(page, item.edit.values);
       await modal(page).getByLabel("TTL (seconds)").fill("3600");
-      await modal(page).getByRole("button", { name: "Save", exact: true }).click();
+      await modal(page).getByRole("button", { name: "Save changes", exact: true }).click();
       await expect(visible(page, `Record ${fqdn} (${item.type}) was updated successfully.`)).toBeVisible();
       for (const value of item.edit.shown) await expect(row).toContainText(value);
       await expect(row).toContainText("3600");
@@ -144,10 +144,9 @@ test.describe("DNS records", () => {
     await modal(page).getByRole("button", { name: "Done" }).click();
     await expect(page.getByRole("tab", { name: "Records (7)" })).toBeVisible();
 
-    const filter = page.getByRole("searchbox", { name: "Filter records" });
-    await filter.fill("shop");
+    await applyFilter(page, "Filter records", "shop");
     await expect(visible(page, "3 matches")).toBeVisible();
-    await choose(page, page, "Filter by record type", "CNAME");
+    await applyFilter(page, "Filter records", "Record type = CNAME");
     await expect(visible(page, "2 matches")).toBeVisible();
     const rows = page.locator("tbody tr");
     await expect(rows).toHaveCount(2);
@@ -156,7 +155,7 @@ test.describe("DNS records", () => {
     await page.getByRole("button", { name: "Clear filters" }).first().click();
     await expect(rows).toHaveCount(7);
 
-    await choose(page, page, "Filter by record type", "CNAME");
+    await applyFilter(page, "Filter records", "Record type = CNAME");
     await expect(rows).toHaveCount(2);
     await page.getByRole("checkbox", { name: "Select all records on this page" }).check();
     await page.getByRole("button", { name: "Delete records" }).click();

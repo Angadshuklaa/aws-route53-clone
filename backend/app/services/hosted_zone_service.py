@@ -79,8 +79,9 @@ def to_zone_out(db: Session, zone: HostedZone, record_count: int | None = None) 
 def list_zones(
     db: Session,
     *,
-    search: str | None,
-    zone_type: str | None,
+    search: list[str],
+    names: list[str],
+    zone_types: list[str],
     page: int,
     page_size: int,
     sort_by: str,
@@ -89,8 +90,8 @@ def list_zones(
     record_count = _record_count_subquery().label("record_count")
     query: Select = select(HostedZone, record_count)
 
-    if search and search.strip():
-        pattern = like_pattern(search.strip())
+    for term in filter(None, (t.strip() for t in search)):
+        pattern = like_pattern(term)
         query = query.where(
             or_(
                 HostedZone.name.like(pattern, escape="\\"),
@@ -98,8 +99,10 @@ def list_zones(
                 HostedZone.comment.like(pattern, escape="\\"),
             )
         )
-    if zone_type:
-        query = query.where(HostedZone.type == zone_type)
+    for term in filter(None, (t.strip() for t in names)):
+        query = query.where(HostedZone.name.like(like_pattern(term), escape="\\"))
+    if zone_types:
+        query = query.where(HostedZone.type.in_(zone_types))
 
     total = db.scalar(select(func.count()).select_from(query.subquery())) or 0
 

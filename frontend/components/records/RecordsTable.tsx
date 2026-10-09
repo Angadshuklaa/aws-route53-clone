@@ -7,31 +7,45 @@ import CollectionPreferences, {
 import Header from "@cloudscape-design/components/header";
 import Link from "@cloudscape-design/components/link";
 import Pagination from "@cloudscape-design/components/pagination";
-import Select, { type SelectProps } from "@cloudscape-design/components/select";
+import PropertyFilter, { type PropertyFilterProps } from "@cloudscape-design/components/property-filter";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import Table, { type TableProps } from "@cloudscape-design/components/table";
-import TextFilter, { type TextFilterProps } from "@cloudscape-design/components/text-filter";
 import { useCallback, useState, type RefObject } from "react";
 
 import { TableEmptyState, TableErrorState, TableNoMatchState } from "@/components/common/TableStates";
 import { recordsApi, type RecordListParams } from "@/lib/api/endpoints";
 import { ALL_RECORD_TYPES } from "@/lib/dns";
 import { formatDateTime } from "@/lib/format";
-import { useDebouncedValue, usePagedQuery, useStoredState } from "@/lib/hooks";
-import type { DnsRecord, HostedZone, RecordType } from "@/lib/types";
+import { usePagedQuery, useStoredState } from "@/lib/hooks";
+import { EMPTY_QUERY, tokenValues } from "@/lib/propertyFilter";
+import type { DnsRecord, HostedZone, Page, RecordType } from "@/lib/types";
 
 type SortField = RecordListParams["sortBy"];
 
-const TYPE_OPTIONS: SelectProps.Option[] = [
-  { value: "", label: "All record types" },
-  ...ALL_RECORD_TYPES.map((type) => ({ value: type, label: type })),
+const ROUTING_POLICIES = ["Simple", "Weighted", "Latency", "Failover", "Geolocation", "Geoproximity", "IP-based", "Multivalue answer"];
+
+const FILTERING_PROPERTIES: PropertyFilterProps.FilteringProperty[] = [
+  { key: "name", propertyLabel: "Record name", groupValuesLabel: "Record name values", operators: [":"] },
+  { key: "type", propertyLabel: "Record type", groupValuesLabel: "Record type values", operators: ["="] },
+  { key: "value", propertyLabel: "Value/Route traffic to", groupValuesLabel: "Values", operators: [":"] },
+  { key: "routingPolicy", propertyLabel: "Routing policy", groupValuesLabel: "Routing policy values", operators: ["="] },
+  { key: "alias", propertyLabel: "Alias", groupValuesLabel: "Alias values", operators: ["="] },
 ];
+
+const FILTERING_OPTIONS: PropertyFilterProps.FilteringOption[] = [
+  ...ALL_RECORD_TYPES.map((type) => ({ propertyKey: "type", value: type })),
+  ...ROUTING_POLICIES.map((policy) => ({ propertyKey: "routingPolicy", value: policy })),
+  { propertyKey: "alias", value: "Yes" },
+  { propertyKey: "alias", value: "No" },
+];
+
+const emptyPage = (pageSize: number): Page<DnsRecord> => ({ items: [], total: 0, page: 1, page_size: pageSize, total_pages: 1 });
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100].map((value) => ({ value, label: `${value} records` }));
 
 const DEFAULT_PREFERENCES: CollectionPreferencesProps.Preferences = {
   pageSize: 20,
-  wrapLines: true,
+  wrapLines: false,
   stripedRows: false,
   contentDisplay: [
     { id: "name", visible: true },
@@ -46,31 +60,38 @@ const DEFAULT_PREFERENCES: CollectionPreferencesProps.Preferences = {
 };
 
 export function useRecordsQuery(zoneId: string) {
-  const [filteringText, setFilteringText] = useState("");
-  const [typeOption, setTypeOption] = useState<SelectProps.Option>(TYPE_OPTIONS[0]);
+  const [filterQuery, setFilterQuery] = useState<PropertyFilterProps.Query>(EMPTY_QUERY);
   const [page, setPage] = useState(1);
   const [sorting, setSorting] = useState<{ field: SortField; descending: boolean }>({ field: "name", descending: false });
   const [preferences, setPreferences] = useStoredState("r53-records-table", DEFAULT_PREFERENCES);
 
-  const search = useDebouncedValue(filteringText.trim(), 300);
   const pageSize = preferences.pageSize ?? 20;
-  const typeKey = typeOption.value ?? "";
 
   const load = useCallback(
-    (signal: AbortSignal) =>
-      recordsApi.list(
+    (signal: AbortSignal): Promise<Page<DnsRecord>> => {
+      const types = tokenValues(filterQuery, "type").map((value) => value.toUpperCase());
+      const aliasValues = tokenValues(filterQuery, "alias").map((value) => value.toLowerCase());
+      if (types.some((type) => !ALL_RECORD_TYPES.includes(type as RecordType)) || aliasValues.some((v) => !["yes", "no"].includes(v))) {
+        return Promise.resolve(emptyPage(pageSize));
+      }
+      return recordsApi.list(
         zoneId,
         {
-          search,
-          types: typeKey ? [typeKey as RecordType] : undefined,
+          search: tokenValues(filterQuery),
+          names: tokenValues(filterQuery, "name"),
+          values: tokenValues(filterQuery, "value"),
+          types: types as RecordType[],
+          routingPolicies: tokenValues(filterQuery, "routingPolicy").map((policy) => policy.toUpperCase().replace(/[^A-Z]/g, "_")),
+          alias: aliasValues.length ? aliasValues.includes("yes") : undefined,
           page,
           pageSize,
           sortBy: sorting.field,
           sortOrder: sorting.descending ? "desc" : "asc",
         },
         signal,
-      ),
-    [zoneId, search, typeKey, page, pageSize, sorting],
+      );
+    },
+    [zoneId, filterQuery, page, pageSize, sorting],
   );
   const query = usePagedQuery(load, { onPageOverflow: setPage });
 
@@ -81,21 +102,17 @@ export function useRecordsQuery(zoneId: string) {
 
   return {
     ...query,
-    filteringText,
-    setFilteringText: resetPage(setFilteringText),
-    typeOption,
-    setTypeOption: resetPage(setTypeOption),
+    filterQuery,
+    setFilterQuery: resetPage(setFilterQuery),
     page,
     setPage,
     sorting,
     setSorting: resetPage(setSorting),
     preferences,
     setPreferences: resetPage(setPreferences),
-    search,
-    filtersActive: Boolean(filteringText || typeKey),
+    filtersActive: filterQuery.tokens.length > 0,
     clearFilters: () => {
-      setFilteringText("");
-      setTypeOption(TYPE_OPTIONS[0]);
+      setFilterQuery(EMPTY_QUERY);
       setPage(1);
     },
   };
@@ -106,7 +123,7 @@ export type RecordsQuery = ReturnType<typeof useRecordsQuery>;
 interface RecordsTableProps {
   zone: HostedZone;
   query: RecordsQuery;
-  filterRef: RefObject<TextFilterProps.Ref | null>;
+  filterRef: RefObject<PropertyFilterProps.Ref | null>;
   selected: DnsRecord[];
   onSelectionChange: (records: DnsRecord[]) => void;
   onCreate: () => void;
@@ -212,7 +229,6 @@ export function RecordsTable({
               Info
             </Link>
           }
-          description="Records define how you want to route traffic for the domain and its subdomains."
           actions={
             <SpaceBetween direction="horizontal" size="xs">
               <Button iconName="refresh" ariaLabel="Refresh records" onClick={reload} />
@@ -233,31 +249,18 @@ export function RecordsTable({
         </Header>
       }
       filter={
-        <div className="filter-bar">
-          <div className="filter-bar__text">
-            <TextFilter
-              ref={filterRef}
-              filteringText={query.filteringText}
-              onChange={({ detail }) => query.setFilteringText(detail.filteringText)}
-              filteringPlaceholder="Filter records by name, type or value"
-              filteringAriaLabel="Filter records"
-              countText={query.search && data ? `${data.total} ${data.total === 1 ? "match" : "matches"}` : undefined}
-            />
-          </div>
-          <div className="filter-bar__select">
-            <Select
-              selectedOption={query.typeOption}
-              onChange={({ detail }) => query.setTypeOption(detail.selectedOption)}
-              options={TYPE_OPTIONS}
-              ariaLabel="Filter by record type"
-            />
-          </div>
-          {query.filtersActive && (
-            <Button variant="inline-link" onClick={query.clearFilters}>
-              Clear filters
-            </Button>
-          )}
-        </div>
+        <PropertyFilter
+          ref={filterRef}
+          query={query.filterQuery}
+          onChange={({ detail }) => query.setFilterQuery(detail)}
+          filteringProperties={FILTERING_PROPERTIES}
+          filteringOptions={FILTERING_OPTIONS}
+          filteringPlaceholder="Filter records by property or value"
+          filteringAriaLabel="Filter records"
+          countText={query.filtersActive && data ? `${data.total} ${data.total === 1 ? "match" : "matches"}` : undefined}
+          hideOperations
+          expandToViewport
+        />
       }
       pagination={
         <Pagination

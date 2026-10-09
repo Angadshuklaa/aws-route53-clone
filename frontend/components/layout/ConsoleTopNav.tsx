@@ -1,5 +1,7 @@
 "use client";
 
+import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
+import Icon from "@cloudscape-design/components/icon";
 import Input, { type InputProps } from "@cloudscape-design/components/input";
 import TopNavigation, { type TopNavigationProps } from "@cloudscape-design/components/top-navigation";
 import { useRouter } from "next/navigation";
@@ -98,21 +100,45 @@ export function ConsoleTopNav() {
           },
         }}
         search={
-          <div className="console-search">
-            <Input
-              ref={searchRef}
-              type="search"
-              value={query}
-              onChange={({ detail }) => setQuery(detail.value)}
-              onKeyDown={({ detail }) => detail.key === "Enter" && search()}
-              placeholder="Search"
-              ariaLabel="Search hosted zones"
-            />
-            {!query && (
-              <span className="console-search__hint" aria-hidden="true">
-                {searchShortcut}
-              </span>
-            )}
+          <div className="console-search-row">
+            <span className="console-services">
+              <ButtonDropdown
+                ariaLabel="Services"
+                expandableGroups
+                items={[
+                  { id: "recent", text: "Recently visited", items: [{ id: "route53", text: "Route 53", href: ROUTES.dashboard }] },
+                  {
+                    id: "networking",
+                    text: "Networking & Content Delivery",
+                    items: [{ id: "route53-all", text: "Route 53", href: ROUTES.dashboard }],
+                  },
+                  { id: "only-route53", text: "Other services aren't part of this demo", disabled: true },
+                ]}
+                onItemFollow={(event) => {
+                  if (!event.detail.href) return;
+                  event.preventDefault();
+                  router.push(event.detail.href);
+                }}
+              >
+                <Icon name="grid-view" /> Services
+              </ButtonDropdown>
+            </span>
+            <div className="console-search">
+              <Input
+                ref={searchRef}
+                type="search"
+                value={query}
+                onChange={({ detail }) => setQuery(detail.value)}
+                onKeyDown={({ detail }) => detail.key === "Enter" && search()}
+                placeholder="Search"
+                ariaLabel="Search hosted zones"
+              />
+              {!query && (
+                <span className="console-search__hint" aria-hidden="true">
+                  {searchShortcut}
+                </span>
+              )}
+            </div>
           </div>
         }
         utilities={[

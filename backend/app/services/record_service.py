@@ -62,29 +62,46 @@ def to_record_out(record: DnsRecord, zone: HostedZone) -> RecordOut:
     )
 
 
+def _value_contains(term: str):  # noqa: ANN202
+    return exists().where(
+        DnsRecordValue.record_id == DnsRecord.id, DnsRecordValue.value.like(like_pattern(term), escape="\\")
+    )
+
+
 def list_records(
     db: Session,
     zone: HostedZone,
     *,
-    search: str | None,
+    search: list[str],
+    names: list[str] = (),
+    values: list[str] = (),
     types: list[str],
+    routing_policies: list[str] = (),
+    alias: bool | None = None,
     page: int,
     page_size: int,
     sort_by: str,
     sort_order: str,
 ) -> RecordListResult:
+    # every record here uses simple routing and none are aliases
+    if (routing_policies and "SIMPLE" not in {p.upper() for p in routing_policies}) or alias:
+        return RecordListResult(items=[], total=0)
+
     query = select(DnsRecord).where(DnsRecord.zone_id == zone.id)
     if types:
         query = query.where(DnsRecord.type.in_(types))
-    if search and search.strip():
-        term = search.strip()
-        pattern = like_pattern(term)
-        value_matches = exists().where(
-            DnsRecordValue.record_id == DnsRecord.id, DnsRecordValue.value.like(pattern, escape="\\")
-        )
+    for term in filter(None, (t.strip() for t in search)):
         query = query.where(
-            or_(DnsRecord.name.like(pattern, escape="\\"), DnsRecord.type == term.upper(), value_matches)
+            or_(
+                DnsRecord.name.like(like_pattern(term), escape="\\"),
+                DnsRecord.type == term.upper(),
+                _value_contains(term),
+            )
         )
+    for term in filter(None, (t.strip() for t in names)):
+        query = query.where(DnsRecord.name.like(like_pattern(term), escape="\\"))
+    for term in filter(None, (t.strip() for t in values)):
+        query = query.where(_value_contains(term))
 
     total = db.scalar(select(func.count()).select_from(query.subquery())) or 0
 

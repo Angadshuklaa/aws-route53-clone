@@ -5,7 +5,7 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, Query, Response, status
 
 from app.api.deps import DbSession, ZoneFromPath, require_session
-from app.schemas.common import ERROR_RESPONSES, Page
+from app.schemas.common import ERROR_RESPONSES, Page, SearchTerm
 from app.schemas.dns_record import (
     BulkDeleteRequest,
     BulkDeleteResult,
@@ -28,8 +28,12 @@ router = APIRouter(
 def list_records(
     zone: ZoneFromPath,
     db: DbSession,
-    search: Annotated[str | None, Query(max_length=255, description="Matches record name, type or value")] = None,
+    search: Annotated[list[SearchTerm] | None, Query(description="Matches record name, type or value; repeat to narrow")] = None,
+    name: Annotated[list[SearchTerm] | None, Query(description="Record name contains")] = None,
+    value: Annotated[list[SearchTerm] | None, Query(description="A record value contains")] = None,
     type: Annotated[list[RecordType] | None, Query(description="Repeat to filter by several types")] = None,  # noqa: A002
+    routing_policy: Annotated[list[SearchTerm] | None, Query(description="For example SIMPLE or WEIGHTED")] = None,
+    alias: Annotated[bool | None, Query(description="Only alias records (true) or only non-alias records (false)")] = None,
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
     sort_by: Literal["name", "type", "ttl"] = "name",
@@ -38,8 +42,12 @@ def list_records(
     result = record_service.list_records(
         db,
         zone,
-        search=search,
+        search=search or [],
+        names=name or [],
+        values=value or [],
         types=type or [],
+        routing_policies=routing_policy or [],
+        alias=alias,
         page=page,
         page_size=page_size,
         sort_by=sort_by,

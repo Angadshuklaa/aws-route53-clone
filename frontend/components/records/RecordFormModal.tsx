@@ -44,6 +44,13 @@ const typeOption = (type: RecordType): SelectProps.Option => ({
 });
 
 const TYPE_OPTIONS = CREATABLE_RECORD_TYPES.map(typeOption);
+// numeric fields stay narrow so host names and values have room
+const VALUE_GRID: Partial<Record<RecordType, AttributeEditorProps.GridLayout[]>> = {
+  MX: [{ breakpoint: "xxs", rows: [[1, 3]] }, { rows: [[1], [1]] }],
+  SRV: [{ breakpoint: "xs", rows: [[1, 1, 1, 3]] }, { rows: [[1, 1, 1], [1]] }],
+  CAA: [{ breakpoint: "xs", rows: [[1, 2, 4]] }, { rows: [[1, 1], [1]] }],
+};
+
 const TTL_PRESETS = [
   { label: "1m", seconds: 60 },
   { label: "1h", seconds: 3600 },
@@ -138,6 +145,8 @@ export function RecordFormModal({ zone, record, onDismiss, onSaved }: RecordForm
     }
   };
 
+  const gridLayout = VALUE_GRID[type];
+
   const definition: AttributeEditorProps.FieldDefinition<ValueRow>[] = spec.fields.map((field) => ({
     label: field.label,
     errorText: (_row, index) => shown(clientRows.rows[index]?.[field.key], serverErrors.rows[index]?.[field.key]),
@@ -173,7 +182,7 @@ export function RecordFormModal({ zone, record, onDismiss, onSaved }: RecordForm
               Cancel
             </Button>
             <Button variant="primary" onClick={save} loading={saving}>
-              {isEdit ? "Save" : "Create records"}
+              {isEdit ? "Save changes" : "Create records"}
             </Button>
           </SpaceBetween>
         </Box>
@@ -241,6 +250,7 @@ export function RecordFormModal({ zone, record, onDismiss, onSaved }: RecordForm
             <AttributeEditor
               items={rows}
               definition={definition}
+              gridLayout={gridLayout}
               onAddButtonClick={() => {
                 touch();
                 setRows((current) => [...current, emptyRow(type)]);

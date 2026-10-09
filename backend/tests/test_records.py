@@ -304,3 +304,25 @@ def test_update_can_change_name_and_type(client: TestClient, zone: dict) -> None
     assert response.json()["name"] == "new.example.com"
     assert response.json()["values"][0]["value"] == "target.example.net"
     assert len(response.json()["values"]) == 1
+
+
+def test_record_property_filters(client: TestClient, zone: dict) -> None:
+    def create(name: str, record_type: str, value: str) -> None:
+        response = client.post(records_url(zone), json={"name": name, "type": record_type, "ttl": 300, "values": [{"value": value}]})
+        assert response.status_code == 201, response.text
+
+    create("mail.example.com", "A", "192.0.2.25")
+    create("web.example.com", "CNAME", "mail-frontend.example.net")
+    create("api.example.com", "A", "198.51.100.7")
+
+    def names(**params: object) -> list[str]:
+        return [r["name"] for r in client.get(records_url(zone), params=params).json()["items"]]
+
+    assert names(name="mail") == ["mail.example.com"]
+    assert names(value="mail") == ["web.example.com"]
+    assert names(search=["example.com", "198.51"]) == ["api.example.com"]
+    assert names(routing_policy="WEIGHTED") == []
+    assert len(names(routing_policy="simple")) == 5
+    assert names(alias="true") == []
+    assert len(names(alias="false")) == 5
+    assert names(name="example.com", type="A") == ["api.example.com", "mail.example.com"]

@@ -45,7 +45,8 @@ test.describe("console shell", () => {
     await page.keyboard.type("example.org");
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/search=example\.org/);
-    await expect(page.getByRole("searchbox", { name: "Filter hosted zones" })).toHaveValue("example.org");
+    await expect(page.locator("tbody tr").filter({ hasText: "example.org" }).first()).toBeVisible();
+    await expect(page.locator("tbody tr").filter({ hasText: "example.com" })).toHaveCount(0);
   });
 
   test("header utilities: CloudShell, support menu and notifications", async ({ page }) => {
@@ -75,7 +76,7 @@ test.describe("console shell", () => {
     await page.getByRole("button", { name: "Close", exact: true }).click();
 
     await page.keyboard.press("/");
-    await expect(page.getByRole("searchbox", { name: "Filter hosted zones" })).toBeFocused();
+    await expect(page.getByRole("combobox", { name: "Filter hosted zones" })).toBeFocused();
     await page.keyboard.type("c"); // typing in the field must not trigger the shortcut
     await expect(page).toHaveURL(/\/hostedzones$/);
     await page.locator("body").click({ position: { x: 5, y: 300 } });

@@ -5,15 +5,6 @@ import { useCallback, useEffect, useState } from "react";
 import { errorMessage, isAbortError } from "@/lib/api/client";
 import type { Page } from "@/lib/types";
 
-export function useDebouncedValue<T>(value: T, delayMs = 300): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const timer = window.setTimeout(() => setDebounced(value), delayMs);
-    return () => window.clearTimeout(timer);
-  }, [value, delayMs]);
-  return debounced;
-}
-
 interface PagedQueryOptions {
   onPageOverflow?: (lastPage: number) => void;
 }

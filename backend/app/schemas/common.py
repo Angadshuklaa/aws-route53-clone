@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from typing import Generic, TypeVar
+from typing import Annotated, Generic, TypeVar
 
-from pydantic import BaseModel
+from pydantic import BaseModel, StringConstraints
 
 T = TypeVar("T")
+
+SearchTerm = Annotated[str, StringConstraints(max_length=255)]
 
 
 class Page(BaseModel, Generic[T]):

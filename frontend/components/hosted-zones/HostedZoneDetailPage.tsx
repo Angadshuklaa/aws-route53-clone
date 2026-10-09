@@ -1,19 +1,22 @@
 "use client";
 
 import Alert from "@cloudscape-design/components/alert";
+import Badge from "@cloudscape-design/components/badge";
 import Box from "@cloudscape-design/components/box";
 import Button from "@cloudscape-design/components/button";
 import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
+import Container from "@cloudscape-design/components/container";
 import ContentLayout from "@cloudscape-design/components/content-layout";
 import CopyToClipboard from "@cloudscape-design/components/copy-to-clipboard";
 import ExpandableSection from "@cloudscape-design/components/expandable-section";
 import Header from "@cloudscape-design/components/header";
 import KeyValuePairs from "@cloudscape-design/components/key-value-pairs";
 import SpaceBetween from "@cloudscape-design/components/space-between";
+import StatusIndicator from "@cloudscape-design/components/status-indicator";
 import Spinner from "@cloudscape-design/components/spinner";
 import Table from "@cloudscape-design/components/table";
 import Tabs from "@cloudscape-design/components/tabs";
-import type { TextFilterProps } from "@cloudscape-design/components/text-filter";
+import type { PropertyFilterProps } from "@cloudscape-design/components/property-filter";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -116,7 +119,7 @@ export function HostedZoneDetailPage({ zoneId }: { zoneId: string }) {
   const [dialog, setDialog] = useState<Dialog | null>(null);
   const [splitPanelOpen, setSplitPanelOpen] = useState(true);
   const [toolsOpen, setToolsOpen] = useState(false);
-  const filterRef = useRef<TextFilterProps.Ref>(null);
+  const filterRef = useRef<PropertyFilterProps.Ref>(null);
   const records = useRecordsQuery(zoneId);
 
   useEffect(() => {
@@ -234,7 +237,6 @@ export function HostedZoneDetailPage({ zoneId }: { zoneId: string }) {
           header={
             <Header
               variant="h1"
-              description={zone.comment || undefined}
               actions={
                 <SpaceBetween direction="horizontal" size="xs">
                   <Button onClick={() => setDialog({ kind: "delete-zone" })}>Delete zone</Button>
@@ -279,6 +281,34 @@ export function HostedZoneDetailPage({ zoneId }: { zoneId: string }) {
                       onImport={() => setDialog({ kind: "import" })}
                       onInfo={() => setToolsOpen(true)}
                     />
+                  ),
+                },
+                {
+                  id: "dnssec",
+                  label: "DNSSEC signing",
+                  content: (
+                    <Container
+                      header={
+                        <Header
+                          variant="h2"
+                          actions={
+                            <Button disabled disabledReason="DNSSEC signing isn't available in this demo.">
+                              Enable DNSSEC signing
+                            </Button>
+                          }
+                        >
+                          DNSSEC signing <Badge color="grey">Coming soon</Badge>
+                        </Header>
+                      }
+                    >
+                      <KeyValuePairs
+                        columns={2}
+                        items={[
+                          { label: "Signing status", value: <StatusIndicator type="stopped">Not signing</StatusIndicator> },
+                          { label: "Key-signing keys (KSKs)", value: "-" },
+                        ]}
+                      />
+                    </Container>
                   ),
                 },
                 {

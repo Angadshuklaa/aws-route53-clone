@@ -189,3 +189,18 @@ def test_health_reports_database_status(anon_client: TestClient) -> None:
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
     assert response.json()["database"] == "ok"
+
+
+def test_property_filters(client: TestClient, create_zone: Callable[..., dict]) -> None:
+    create_zone("shop.example", comment="Storefront for alpha")
+    create_zone("alpha.example", comment="Marketing")
+    create_zone("alpha.internal", type="PRIVATE", vpc_id="vpc-0a1b2c3d", vpc_region="us-east-1")
+
+    def names(**params: object) -> list[str]:
+        return [z["name"] for z in client.get("/api/hosted-zones", params=params).json()["items"]]
+
+    assert names(name="alpha") == ["alpha.example", "alpha.internal"]
+    assert names(search="alpha") == ["alpha.example", "alpha.internal", "shop.example"]
+    assert names(search=["alpha", "storefront"]) == ["shop.example"]
+    assert names(type=["PUBLIC", "PRIVATE"]) == ["alpha.example", "alpha.internal", "shop.example"]
+    assert names(name="alpha", type="PRIVATE") == ["alpha.internal"]

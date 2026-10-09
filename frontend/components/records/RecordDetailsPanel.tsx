@@ -30,7 +30,8 @@ export function RecordDetailsPanel({ record, onEdit, onDelete }: RecordDetailsPa
       closeBehavior="hide"
     >
       <KeyValuePairs
-        columns={1}
+        columns={4}
+        minColumnWidth={180}
         items={[
           {
             label: "Record name",

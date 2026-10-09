@@ -18,7 +18,7 @@ test.describe("authentication", () => {
   test("signing in lands on the Route 53 dashboard", async ({ page }) => {
     await signIn(page);
     await expect(page.getByRole("heading", { name: "Route 53 Dashboard", level: 1 })).toBeVisible();
-    await expect(visible(page, "DNS management")).toBeVisible();
+    await expect(visible(page, "Service overview")).toBeVisible();
   });
 
   test("wrong credentials show an error and no session is created", async ({ page }) => {

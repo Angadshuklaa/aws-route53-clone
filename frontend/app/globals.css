@@ -73,22 +73,6 @@ body {
   overflow-wrap: anywhere;
 }
 
-.filter-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-  align-items: center;
-}
-
-.filter-bar__text {
-  flex: 1 1 260px;
-  max-width: 480px;
-}
-
-.filter-bar__select {
-  flex: 0 1 220px;
-}
-
 .coming-soon {
   padding: 32px 16px;
   text-align: center;
@@ -122,9 +106,37 @@ body {
   top: 8px;
 }
 
+/* room for the Services menu and a full-width search box */
+#top-nav div:has(> .console-search-row) {
+  max-inline-size: 560px;
+}
+
+#top-nav div:has(> div > .console-search-row) {
+  justify-content: flex-start;
+}
+
+.console-services button {
+  border-color: transparent !important;
+  background: transparent !important;
+  color: #ffffff !important;
+  padding-inline: 6px 10px !important;
+}
+
+.console-services button:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.console-search-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
 .console-search {
   position: relative;
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .console-search__hint {
