@@ -21,7 +21,7 @@ function writeStorage(key: string, value: string): void {
   try {
     window.localStorage.setItem(key, value);
   } catch {
-    // Storage can be unavailable (private mode); the preference just won't persist.
+    // ignore
   }
 }
 
@@ -53,7 +53,6 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    // Sync React state with the preference the boot script already applied.
     /* eslint-disable react-hooks/set-state-in-effect */
     if (readStorage(THEME_KEY) === "dark") setThemeState("dark");
     if (readStorage(DENSITY_KEY) === "compact") setDensityState("compact");

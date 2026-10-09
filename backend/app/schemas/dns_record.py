@@ -10,14 +10,6 @@ RecordType = Literal["A", "AAAA", "CNAME", "TXT", "MX", "NS", "PTR", "SRV", "CAA
 
 
 class RecordValueIn(BaseModel):
-    """One value of a record set. Which fields are used depends on the type:
-
-    - A / AAAA / CNAME / NS / PTR / TXT: ``value``
-    - MX: ``priority`` + ``value`` (mail server)
-    - SRV: ``priority`` + ``weight`` + ``port`` + ``value`` (target)
-    - CAA: ``flags`` + ``tag`` + ``value``
-    """
-
     model_config = ConfigDict(extra="forbid")
 
     value: str = Field(default="", max_length=4096)

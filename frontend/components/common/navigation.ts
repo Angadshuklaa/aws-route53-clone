@@ -8,13 +8,8 @@ interface FollowDetail {
   external?: boolean;
 }
 
-// Same shape as Cloudscape's onFollow handlers (Link, BreadcrumbGroup, SideNavigation).
 type FollowHandler = (event: CustomEvent<FollowDetail>) => void;
 
-/**
- * Cloudscape links render real anchors. This turns plain left-clicks into
- * client-side navigation while leaving new-tab clicks to the browser.
- */
 export function useFollow(): FollowHandler {
   const router = useRouter();
   return useCallback(

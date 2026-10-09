@@ -19,7 +19,6 @@ function isMac(): boolean {
   }
 }
 
-/** The console header: logo, unified search, CloudShell, notifications, support, settings, Region and account. */
 export function ConsoleTopNav() {
   const router = useRouter();
   const { user, logout } = useAuth();
@@ -33,7 +32,6 @@ export function ConsoleTopNav() {
   const accountId = formatAccountId(user?.account_id ?? "");
   const unread = history.length > 0 && history[0].id !== lastReadId;
 
-  // Option+S (Alt+S) focuses the search, as in the AWS console.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.altKey && !event.metaKey && !event.ctrlKey && event.code === "KeyS") {

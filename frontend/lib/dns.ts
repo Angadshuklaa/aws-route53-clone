@@ -1,7 +1,3 @@
-/**
- * Record type metadata and client-side validation. The backend applies the
- * same rules; validating here gives immediate inline feedback.
- */
 import type { CreatableRecordType, RecordType, RecordValue } from "@/lib/types";
 
 export type ValueField = "value" | "priority" | "weight" | "port" | "flags" | "tag";
@@ -102,7 +98,6 @@ export const RECORD_TYPES: Record<RecordType, RecordTypeSpec> = {
   },
 };
 
-/** Form state for one value row: every field is kept as text while editing. */
 export type ValueRow = Record<ValueField, string>;
 
 export const emptyRow = (type: RecordType): ValueRow => ({
@@ -166,7 +161,6 @@ export function validateHostname(input: string): string | null {
   return null;
 }
 
-/** Validates the subdomain part entered in front of the zone name. */
 export function validateRecordPrefix(prefix: string, zoneName: string): string | null {
   const value = prefix.trim().toLowerCase().replace(/\.$/, "");
   if (!value) return null; // blank = zone apex
@@ -252,7 +246,6 @@ export function validateRows(type: RecordType, rows: ValueRow[]): { rows: RowErr
     return errors;
   });
 
-  // Flag exact duplicates so the user sees which row repeats another.
   const seen = new Set<string>();
   rows.forEach((row, index) => {
     const key = JSON.stringify(rowToPayload(type, row));

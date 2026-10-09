@@ -7,7 +7,6 @@ import Modal from "@cloudscape-design/components/modal";
 
 import { usePreferences } from "@/lib/preferences";
 
-/** CloudShell isn't part of this clone; the header and footer buttons explain that. */
 export function CloudShellModal() {
   const { cloudShellVisible, setCloudShellVisible } = usePreferences();
   if (!cloudShellVisible) return null;

@@ -60,7 +60,6 @@ def test_logout_invalidates_the_session(client: TestClient) -> None:
     assert response.status_code == 204
     assert client.get("/api/auth/me").status_code == 401
 
-    # Replaying the old token must not work: the server-side session is gone.
     client.cookies.set("r53_session", token)
     assert client.get("/api/auth/me").status_code == 401
 

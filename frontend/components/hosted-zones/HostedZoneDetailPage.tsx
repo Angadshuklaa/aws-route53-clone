@@ -137,7 +137,6 @@ export function HostedZoneDetailPage({ zoneId }: { zoneId: string }) {
 
   const zone = zoneState.status === "ready" ? zoneState.zone : null;
 
-  // Keep the selection in sync with the freshly loaded page of records.
   const pageItems = records.data?.items ?? [];
   const selectedOnPage = selected
     .map((record) => pageItems.find((item) => item.id === record.id))

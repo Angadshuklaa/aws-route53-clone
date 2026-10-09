@@ -23,7 +23,6 @@ export function loginUrl(nextPath: string): string {
   return `${LOGIN_PATH}?next=${encodeURIComponent(nextPath)}`;
 }
 
-/** Only allow same-site relative redirects after sign-in. */
 export function safeNextPath(raw: string | null): string {
   if (raw && raw.startsWith("/") && !raw.startsWith("//") && !raw.startsWith(LOGIN_PATH)) return raw;
   return "/route53/v2/dashboard";
@@ -33,7 +32,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>("loading");
   const [user, setUser] = useState<CurrentUser | null>(null);
 
-  // The session lives in an HTTP-only cookie, so ask the API who we are.
   useEffect(() => {
     const controller = new AbortController();
     authApi
@@ -43,8 +41,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setStatus("authenticated");
       })
       .catch(() => {
-        // 401 (no session) and network failures both lead to the sign-in page,
-        // which reports connectivity problems when the user tries to sign in.
         if (controller.signal.aborted) return;
         setUser(null);
         setStatus("unauthenticated");
@@ -52,9 +48,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => controller.abort();
   }, []);
 
-  // If any API call reports an expired session, drop the signed-in state.
-  // Protected pages then redirect to sign-in (see RequireAuth); public pages
-  // such as the landing page simply show their signed-out state.
   useEffect(() => {
     setUnauthorizedHandler(() => {
       setUser(null);
@@ -74,8 +67,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await authApi.logout();
     } finally {
-      // A full navigation resets all client state and avoids racing the
-      // protected-route redirect (which would add ?next=).
       window.location.replace("/");
     }
   }, []);

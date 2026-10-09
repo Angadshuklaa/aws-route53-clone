@@ -1,5 +1,3 @@
-"""Business logic for hosted zones."""
-
 from __future__ import annotations
 
 import logging
@@ -41,7 +39,7 @@ class ZoneListResult:
     total: int
 
 
-def _record_count_subquery():  # noqa: ANN202 - SQLAlchemy scalar subquery
+def _record_count_subquery():  # noqa: ANN202
     return (
         select(func.count(DnsRecord.id))
         .where(DnsRecord.zone_id == HostedZone.id)
@@ -194,7 +192,6 @@ def create_zone(db: Session, data: HostedZoneCreate) -> HostedZone:
         tags=[HostedZoneTag(key=tag.key, value=tag.value) for tag in tags],
     )
 
-    # Like Route 53, every new zone starts with an apex NS and SOA record.
     name_servers = generate_name_servers(zone.id, private=data.type == "PRIVATE")
     zone.records = [
         DnsRecord(
@@ -226,8 +223,7 @@ def create_zone(db: Session, data: HostedZoneCreate) -> HostedZone:
 
 
 def _replace_tags(zone: HostedZone, tags: list[Tag]) -> None:
-    # Update rows in place: re-inserting an existing (zone_id, key) in the same
-    # flush as its delete would violate the primary key.
+    # same idea as apply_values: reuse existing rows instead of delete + insert
     wanted = {tag.key: tag.value for tag in tags}
     for existing in list(zone.tags):
         if existing.key in wanted:
@@ -256,6 +252,6 @@ def update_zone(db: Session, zone_id: str, data: HostedZoneUpdate) -> HostedZone
 
 def delete_zone(db: Session, zone_id: str) -> None:
     zone = get_zone(db, zone_id)
-    db.delete(zone)  # dns_records and their values are removed by ON DELETE CASCADE
+    db.delete(zone)
     db.commit()
     logger.info("Deleted hosted zone %s (%s)", zone.name, zone.id)

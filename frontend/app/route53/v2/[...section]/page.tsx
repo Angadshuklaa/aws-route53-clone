@@ -17,7 +17,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: PLACEHOLDER_SECTIONS[section.join("/")]?.title ?? "Not found" };
 }
 
-/** "Coming soon" pages for the Route 53 sections this clone doesn't implement. */
 export default async function PlaceholderPage({ params }: Props) {
   const { section } = await params;
   const slug = section.join("/");

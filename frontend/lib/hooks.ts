@@ -15,7 +15,6 @@ export function useDebouncedValue<T>(value: T, delayMs = 300): T {
 }
 
 interface PagedQueryOptions {
-  /** Called when the requested page is past the end (e.g. after deletions or a narrower filter). */
   onPageOverflow?: (lastPage: number) => void;
 }
 
@@ -26,10 +25,6 @@ interface PagedQueryState<T> {
   error: string | null;
 }
 
-/**
- * Runs `load` whenever it changes (memoize it with the query parameters) and
- * cancels stale requests. The previous page stays available while loading.
- */
 export function usePagedQuery<T>(load: (signal: AbortSignal) => Promise<Page<T>>, options: PagedQueryOptions = {}) {
   const { onPageOverflow } = options;
   const [reloadKey, setReloadKey] = useState(0);
@@ -58,7 +53,6 @@ export function usePagedQuery<T>(load: (signal: AbortSignal) => Promise<Page<T>>
   return { data: state.data, error: loading ? null : state.error, loading, reload };
 }
 
-/** Table preferences remembered per browser. Falls back to defaults if storage is unavailable. */
 export function useStoredState<T>(key: string, defaults: T): [T, (value: T) => void] {
   const [value, setValue] = useState<T>(() => {
     try {
@@ -74,7 +68,7 @@ export function useStoredState<T>(key: string, defaults: T): [T, (value: T) => v
       try {
         window.localStorage.setItem(key, JSON.stringify(next));
       } catch {
-        // Not persisted; the preference still applies for this session.
+        // ignore
       }
     },
     [key],

@@ -33,7 +33,6 @@ import type { DnsRecord, HostedZone, RecordType } from "@/lib/types";
 
 interface RecordFormModalProps {
   zone: HostedZone;
-  /** The record to edit; omit to create a new record. */
   record?: DnsRecord;
   onDismiss: () => void;
   onSaved: (record: DnsRecord) => void;
@@ -72,7 +71,6 @@ function parseServerErrors(error: ApiError): ServerErrors {
   return result;
 }
 
-/** Create or edit a record. Mount it only while it's open. */
 export function RecordFormModal({ zone, record, onDismiss, onSaved }: RecordFormModalProps) {
   const { notify } = useNotifications();
   const isEdit = Boolean(record);
@@ -94,7 +92,6 @@ export function RecordFormModal({ zone, record, onDismiss, onSaved }: RecordForm
   const hasClientErrors =
     Boolean(nameError || ttlError || clientRows.form) || clientRows.rows.some((row) => Object.keys(row).length > 0);
 
-  // Client errors appear after the first submit attempt; server errors until the next edit.
   const shown = (client: string | null | undefined, server: string | undefined) =>
     (submitted ? client : null) ?? server ?? undefined;
 
@@ -106,7 +103,6 @@ export function RecordFormModal({ zone, record, onDismiss, onSaved }: RecordForm
   const changeType = (next: RecordType) => {
     touch();
     setType(next);
-    // Keep what was typed in the main value field; reset type-specific fields.
     setRows((current) => current.slice(0, RECORD_TYPES[next].maxValues).map((row) => ({ ...emptyRow(next), value: row.value })));
   };
 

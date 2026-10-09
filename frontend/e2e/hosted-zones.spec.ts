@@ -9,7 +9,6 @@ test.describe("hosted zones", () => {
   test("create, find, search, view, edit and delete a hosted zone", async ({ page }) => {
     const name = uniqueZoneName("zone");
 
-    // Create (with client-side validation first).
     await page.getByRole("button", { name: "Create hosted zone", exact: true }).click();
     await expect(page).toHaveURL(/\/hostedzones\/create$/);
     await page.getByLabel("Domain name").fill("not a domain");
@@ -25,7 +24,6 @@ test.describe("hosted zones", () => {
     await expect(page.getByRole("tab", { name: "Records (2)" })).toBeVisible();
     const zoneUrl = page.url();
 
-    // Find it through search on the list page.
     await page.getByRole("link", { name: "Hosted zones" }).first().click();
     await page.getByRole("searchbox", { name: "Filter hosted zones" }).fill(name);
     await expect(visible(page, "1 match")).toBeVisible();
@@ -33,7 +31,6 @@ test.describe("hosted zones", () => {
     await expect(row).toContainText("Created by Playwright");
     await expect(row).toContainText("Public");
 
-    // Edit from the list (select + Edit).
     await row.getByRole("radio").check();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     const editDialog = modal(page);
@@ -43,16 +40,13 @@ test.describe("hosted zones", () => {
     await expect(visible(page, `Hosted zone ${name} was updated successfully.`)).toBeVisible();
     await expect(row).toContainText("Edited description");
 
-    // The change is persisted: reload the details page.
     await page.goto(zoneUrl);
     await expect(page.getByText("Edited description").first()).toBeVisible();
 
-    // Cancelling the delete dialog leaves the zone alone.
     await page.getByRole("button", { name: "Delete zone" }).click();
     await modal(page).getByRole("button", { name: "Cancel" }).click();
     await expect(page.getByRole("heading", { name, level: 1 })).toBeVisible();
 
-    // Delete requires typing "delete".
     await page.getByRole("button", { name: "Delete zone" }).click();
     const deleteButton = modal(page).getByRole("button", { name: "Delete", exact: true });
     await expect(deleteButton).toBeDisabled();

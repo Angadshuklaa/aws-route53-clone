@@ -31,14 +31,10 @@ function rememberAccount(accountId: string | null): void {
     if (accountId) window.localStorage.setItem(REMEMBERED_ACCOUNT_KEY, accountId);
     else window.localStorage.removeItem(REMEMBERED_ACCOUNT_KEY);
   } catch {
-    // Storage unavailable: the account just isn't remembered.
+    // ignore
   }
 }
 
-/**
- * Two-step sign-in like the AWS console: choose the user type and account,
- * then enter the IAM user name and password. Only the demo IAM user exists.
- */
 export function SignInPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -57,7 +53,6 @@ export function SignInPage() {
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [alert, setAlert] = useState<{ title: string; message: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  // Which control receives focus when the IAM step mounts (autoFocus, not a timer, so typing isn't redirected).
   const [focusTarget, setFocusTarget] = useState<"username" | "sign-in">("username");
 
   useEffect(() => {
@@ -67,7 +62,7 @@ export function SignInPage() {
   useEffect(() => {
     const remembered = readRememberedAccount();
     if (remembered) {
-      /* eslint-disable react-hooks/set-state-in-effect -- read browser storage once after mount */
+      /* eslint-disable react-hooks/set-state-in-effect */
       setAccountId(remembered);
       setRemember(true);
       /* eslint-enable react-hooks/set-state-in-effect */

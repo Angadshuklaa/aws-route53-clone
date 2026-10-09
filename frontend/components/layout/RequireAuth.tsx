@@ -15,7 +15,6 @@ export function FullPageSpinner({ label }: { label: string }) {
   );
 }
 
-/** Renders children only for a signed-in user; otherwise redirects to sign-in. */
 export function RequireAuth({ children }: { children: ReactNode }) {
   const { status } = useAuth();
   const router = useRouter();

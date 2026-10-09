@@ -1,10 +1,3 @@
-"""Mocked sign-in backed by server-side sessions stored in SQLite.
-
-There is a single demo IAM user configured through environment variables.
-The browser only ever holds an opaque random token in an HTTP-only cookie;
-the database stores its SHA-256 hash.
-"""
-
 from __future__ import annotations
 
 import hashlib

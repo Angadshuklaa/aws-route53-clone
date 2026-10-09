@@ -18,7 +18,6 @@ export interface NotificationRecord {
 
 interface NotificationsContextValue {
   items: FlashbarProps.MessageDefinition[];
-  /** Recent notifications, newest first, for the header's notifications menu. */
   history: NotificationRecord[];
   notify: (notification: NotificationInput) => void;
   clear: () => void;
@@ -58,7 +57,6 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       setHistory((current) =>
         [{ id, type, summary: summarize({ type, header, content }), time: new Date() }, ...current].slice(0, HISTORY_LIMIT),
       );
-      // Successes fade out; errors and warnings stay until dismissed.
       if (type === "success" || type === "info") window.setTimeout(() => dismiss(id), AUTO_DISMISS_MS);
     },
     [dismiss],

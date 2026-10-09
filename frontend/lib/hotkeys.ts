@@ -19,10 +19,6 @@ function modalIsOpen(): boolean {
   return document.querySelector('[role="dialog"][aria-modal="true"]') !== null;
 }
 
-/**
- * Registers single-key shortcuts. They are ignored while the user types in a
- * form field, holds a modifier key, or has a modal open.
- */
 export function useHotkeys(bindings: Record<string, () => void>, enabled = true): void {
   const bindingsRef = useRef(bindings);
   useEffect(() => {

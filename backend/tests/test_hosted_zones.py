@@ -58,7 +58,6 @@ def test_private_zone_requires_a_valid_vpc(client: TestClient) -> None:
     assert ok.status_code == 201
     assert ok.json()["vpc_id"] == "vpc-0a1b2c3d"
 
-    # Same name in another VPC is allowed, the same VPC is not.
     other_vpc = client.post(
         "/api/hosted-zones",
         json={"name": "corp.internal", "type": "PRIVATE", "vpc_id": "vpc-0a1b2c3e", "vpc_region": "us-east-1"},
@@ -89,7 +88,6 @@ def test_list_search_filter_sort_and_paginate(client: TestClient, create_zone: C
     by_id = client.get("/api/hosted-zones", params={"search": created[2]["id"].lower()}).json()
     assert [z["id"] for z in by_id["items"]] == [created[2]["id"]]
 
-    # LIKE wildcards in the search term are matched literally.
     by_comment = client.get("/api/hosted-zones", params={"search": "100%"}).json()
     assert [z["name"] for z in by_comment["items"]] == ["alpha.test"]
 
@@ -117,7 +115,6 @@ def test_update_zone_persists_comment_and_tags(client: TestClient, zone: dict) -
     assert response.status_code == 200
     assert response.json()["comment"] == "Updated description"
 
-    # Replace tags again, keeping one key and dropping the other.
     response = client.put(f"/api/hosted-zones/{zone['id']}", json={"comment": "Again", "tags": [{"key": "Env", "value": "staging"}]})
     assert response.status_code == 200
 
@@ -184,7 +181,6 @@ def test_demo_seed_runs_only_once(db_path: Path) -> None:
 
     with make_client(db_path, seed=True) as second:
         second.post("/api/auth/login", json=DEMO_LOGIN)
-        # Restart neither re-seeds nor resurrects the deleted zone.
         assert second.get("/api/hosted-zones").json()["total"] == zones["total"] - 1
 
 

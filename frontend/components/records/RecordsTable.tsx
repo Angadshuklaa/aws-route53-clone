@@ -45,7 +45,6 @@ const DEFAULT_PREFERENCES: CollectionPreferencesProps.Preferences = {
   ],
 };
 
-/** Filtering, paging and sorting state for a zone's records, loaded from the API. */
 export function useRecordsQuery(zoneId: string) {
   const [filteringText, setFilteringText] = useState("");
   const [typeOption, setTypeOption] = useState<SelectProps.Option>(TYPE_OPTIONS[0]);

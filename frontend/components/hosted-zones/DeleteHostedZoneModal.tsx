@@ -22,7 +22,6 @@ interface DeleteHostedZoneModalProps {
   onDeleted: (zone: HostedZone) => void;
 }
 
-/** Confirms and deletes a hosted zone. Mount it only while it's open. */
 export function DeleteHostedZoneModal({ zone, onDismiss, onDeleted }: DeleteHostedZoneModalProps) {
   const { notify } = useNotifications();
   const [confirmation, setConfirmation] = useState("");

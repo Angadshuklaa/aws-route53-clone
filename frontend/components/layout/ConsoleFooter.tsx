@@ -3,7 +3,6 @@
 import { usePreferences } from "@/lib/preferences";
 import { EXTERNAL_LINKS } from "@/lib/routes";
 
-/** Bottom bar of the console, laid out like the AWS console footer. */
 export function ConsoleFooter() {
   const { setCloudShellVisible, setShortcutsVisible } = usePreferences();
   return (

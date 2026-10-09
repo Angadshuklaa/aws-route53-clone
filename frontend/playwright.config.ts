@@ -1,10 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
 
-/**
- * End-to-end tests drive the real UI against a running frontend + backend.
- * Point them at any deployment with E2E_BASE_URL, e.g.
- *   E2E_BASE_URL=https://your-app.vercel.app npx playwright test
- */
 export default defineConfig({
   testDir: "./e2e",
   timeout: 60_000,

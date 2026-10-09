@@ -22,7 +22,7 @@ def test_dashboard_counts_zones_and_records(client: TestClient, create_zone: Cal
 
     summary = client.get("/api/dashboard").json()
     assert summary["hosted_zones"] == {"total": 2, "public": 1, "private": 1}
-    assert summary["record_count"] == 5  # 2 x (NS + SOA) + 1 A
+    assert summary["record_count"] == 5
     assert summary["records_by_type"]["A"] == 1
     assert summary["records_by_type"]["NS"] == 2
     assert summary["records_by_type"]["CAA"] == 0

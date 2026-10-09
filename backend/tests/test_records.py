@@ -3,8 +3,6 @@ from collections.abc import Callable
 import pytest
 from fastapi.testclient import TestClient
 
-# For each required type: create payload values, expected display values,
-# and an edit (new values, expected display values).
 RECORD_CASES = {
     "A": (
         "www.example.com",
@@ -117,7 +115,6 @@ def test_type_specific_fields_round_trip(client: TestClient, zone: dict) -> None
     ).json()
     assert srv["values"] == [{"value": "xmpp.example.com", "priority": 0, "weight": 65535, "port": 5269, "flags": None, "tag": None}]
 
-    # Fields that don't belong to the type are dropped rather than stored.
     a = client.post(
         records_url(zone),
         json={"name": "ip.example.com", "type": "A", "ttl": 60, "values": [{"value": "192.0.2.1", "priority": 5}]},
@@ -167,7 +164,7 @@ def test_record_name_and_ttl_validation(client: TestClient, zone: dict) -> None:
     assert outside["status"] == 422 and outside["body"]["error"]["details"][0]["field"] == "name"
     assert create("a.*.example.com")["status"] == 422
     assert create("www.example.com", ttl=-1)["body"]["error"]["details"][0]["field"] == "ttl"
-    assert create("soa.example.com", record_type="SOA")["status"] == 422  # SOA can't be created
+    assert create("soa.example.com", record_type="SOA")["status"] == 422
     wildcard = create("*.Example.com.")
     assert wildcard["status"] == 201 and wildcard["body"]["name"] == "*.example.com"
 
@@ -178,12 +175,12 @@ def test_cname_rules_and_duplicates(client: TestClient, zone: dict) -> None:
             records_url(zone), json={"name": name, "type": record_type, "ttl": 300, "values": [{"value": value}]}
         ).status_code
 
-    assert create("example.com", "CNAME", "other.example.net") == 400  # apex
+    assert create("example.com", "CNAME", "other.example.net") == 400
     assert create("www.example.com", "A", "192.0.2.1") == 201
-    assert create("www.example.com", "A", "192.0.2.2") == 409  # same name + type
-    assert create("www.example.com", "CNAME", "other.example.net") == 409  # CNAME next to A
+    assert create("www.example.com", "A", "192.0.2.2") == 409
+    assert create("www.example.com", "CNAME", "other.example.net") == 409
     assert create("alias.example.com", "CNAME", "www.example.com") == 201
-    assert create("alias.example.com", "TXT", "hello") == 409  # anything next to CNAME
+    assert create("alias.example.com", "TXT", "hello") == 409
 
 
 def test_records_are_isolated_per_zone(client: TestClient, create_zone: Callable[..., dict]) -> None:
@@ -200,7 +197,6 @@ def test_records_are_isolated_per_zone(client: TestClient, create_zone: Callable
         json={"name": "www.b.example", "type": "A", "ttl": 300, "values": [{"value": "192.0.2.9"}]},
     ).status_code == 404
     assert client.delete(f"{records_url(zone_b)}/{record['id']}").status_code == 404
-    # A record named for zone A can't be created inside zone B.
     assert client.post(
         records_url(zone_b), json={"name": "www.a.example", "type": "A", "ttl": 300, "values": [{"value": "192.0.2.1"}]}
     ).status_code == 422
@@ -235,16 +231,16 @@ def test_search_type_filter_and_pagination(client: TestClient, zone: dict) -> No
     assert names(search="shop", type="A") == ["shop-api.example.com"]
     assert set(names(search="shop")) == {"cdn.example.com", "shop.example.com", "shop-api.example.com"}
     assert names(search="192.0.2.50") == ["shop-api.example.com"]
-    assert names(search="_sip") == ["_sip._tcp.example.com"]  # underscore matched literally
+    assert names(search="_sip") == ["_sip._tcp.example.com"]
     assert names(type=["CNAME", "SRV"]) == ["_sip._tcp.example.com", "cdn.example.com", "shop.example.com"]
     assert names(search="no-such-record") == []
 
     page = client.get(records_url(zone), params={"page_size": 5, "page": 3}).json()
-    assert page["total"] == 14  # 12 created + NS + SOA
+    assert page["total"] == 14
     assert page["total_pages"] == 3
     assert len(page["items"]) == 4
     first = client.get(records_url(zone), params={"page_size": 5}).json()["items"]
-    assert [r["type"] for r in first[:2]] == ["NS", "SOA"]  # apex system records first
+    assert [r["type"] for r in first[:2]] == ["NS", "SOA"]
 
     by_ttl = client.get(records_url(zone), params={"sort_by": "ttl", "sort_order": "desc"}).json()["items"]
     assert by_ttl[0]["ttl"] == 172800

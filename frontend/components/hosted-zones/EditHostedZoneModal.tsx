@@ -31,7 +31,6 @@ interface EditHostedZoneModalProps {
   onSaved: (zone: HostedZone) => void;
 }
 
-/** Edits the mutable settings of a hosted zone. Mount it only while it's open. */
 export function EditHostedZoneModal({ zone, onDismiss, onSaved }: EditHostedZoneModalProps) {
   const { notify } = useNotifications();
   const [comment, setComment] = useState(zone.comment);

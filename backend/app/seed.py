@@ -1,11 +1,3 @@
-"""One-time demo data.
-
-Seeding runs at most once per database: a marker row in ``app_metadata``
-records that it happened, so restarts and redeploys never duplicate or
-overwrite data, and zones the user deletes stay deleted. All names and
-addresses come from ranges reserved for documentation (RFC 2606/5737/3849).
-"""
-
 from __future__ import annotations
 
 import logging
@@ -23,8 +15,6 @@ logger = logging.getLogger(__name__)
 
 SEED_MARKER = "demo_data_seeded_at"
 
-# (name, type, comment, vpc, tags, records); records are (name prefix, type, ttl, values)
-# where "@" is the apex and values are strings or dicts of type-specific fields.
 DEMO_ZONES: list[tuple] = [
     (
         "example.com", "PUBLIC", "Primary production domain", None,

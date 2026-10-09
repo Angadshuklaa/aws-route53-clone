@@ -18,8 +18,6 @@ const section = (text: string, slugs: string[]): SideNavigationProps.Section => 
   items: slugs.map(link),
 });
 
-// Mirrors the Route 53 console navigation. Sections other than Dashboard and
-// Hosted zones open "coming soon" pages.
 const ITEMS: SideNavigationProps.Item[] = [
   { type: "link", text: "Dashboard", href: ROUTES.dashboard },
   { type: "link", text: "Hosted zones", href: ROUTES.hostedZones },
@@ -39,7 +37,6 @@ const ITEMS: SideNavigationProps.Item[] = [
 ];
 
 function activeHrefFor(pathname: string): string {
-  // Zone detail and create pages highlight "Hosted zones".
   if (pathname.startsWith(ROUTES.hostedZones)) return ROUTES.hostedZones;
   return pathname;
 }
@@ -47,7 +44,6 @@ function activeHrefFor(pathname: string): string {
 export function RouteSideNav({ pathname }: { pathname: string }) {
   const follow = useFollow();
   const activeHref = activeHrefFor(pathname);
-  // Expand the section that contains the current page.
   const items = ITEMS.map((item) =>
     item.type === "section" && item.items.some((child) => child.type === "link" && child.href === activeHref)
       ? { ...item, defaultExpanded: true }

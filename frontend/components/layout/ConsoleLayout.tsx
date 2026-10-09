@@ -23,7 +23,6 @@ export interface ConsoleLayoutProps {
   onSplitPanelToggle?: (open: boolean) => void;
 }
 
-/** The AWS console page frame: side navigation, breadcrumbs, flash messages and help panel. */
 export function ConsoleLayout({
   breadcrumbs,
   content,

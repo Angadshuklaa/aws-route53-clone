@@ -1,12 +1,3 @@
-"""Import and export of hosted zones as BIND zone files (and JSON export).
-
-The importer handles the common master-file syntax: comments, ``$ORIGIN``,
-``$TTL``, ``@``, relative and absolute owner names, blank owners (repeat the
-previous owner), optional TTL/class fields and parenthesised multi-line
-records. RDATA is parsed with dnspython, then validated with the same rules
-as the REST API before anything is stored.
-"""
-
 from __future__ import annotations
 
 import json
@@ -43,7 +34,7 @@ _CLASSES = {"IN", "CH", "HS", "ANY"}
 class _LogicalLine:
     number: int
     text: str
-    continues_owner: bool  # line started with whitespace: reuse the previous owner
+    continues_owner: bool
 
 
 @dataclass
@@ -56,7 +47,6 @@ class _ParsedGroup:
 
 
 def _logical_lines(content: str) -> list[_LogicalLine]:
-    """Strip comments and join parenthesised continuation lines."""
     lines: list[_LogicalLine] = []
     buffer: list[str] = []
     start_line = 0
@@ -140,7 +130,6 @@ def _rdata_to_values(record_type: str, rdata: dns.rdata.Rdata) -> RecordValueIn:
             value=rdata.value.decode("ascii", "replace"), flags=rdata.flags, tag=rdata.tag.decode("ascii", "replace")
         )
     if record_type == "TXT":
-        # Multiple character-strings in one TXT RR form a single logical value.
         return RecordValueIn(value=b"".join(rdata.strings).decode("ascii", "replace"))
     raise ValueError(f"Unsupported record type {record_type}")
 
@@ -226,7 +215,7 @@ def parse_zone_file(content: str, zone_name: str) -> tuple[list[_ParsedGroup], l
                 relativize=False,
             )
             value = _rdata_to_values(record_type, rdata)
-        except Exception as exc:  # dnspython raises many syntax error types
+        except Exception as exc:
             errors.append(ZoneImportIssue(line=line.number, message=f"Invalid {record_type} data for {name}: {exc}"))
             continue
 
@@ -274,7 +263,7 @@ def import_zone_file(db: Session, zone: HostedZone, content: str, overwrite: boo
             record = DnsRecord(zone_id=zone.id, name=group.name, type=group.type, ttl=group.ttl, created_at=now, updated_at=now)
             record_service.apply_values(record, values)
             db.add(record)
-            db.flush()  # make the record visible to later conflict checks in this import
+            db.flush()
             created += 1
         else:
             existing.ttl = group.ttl

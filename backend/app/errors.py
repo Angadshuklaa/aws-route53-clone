@@ -1,10 +1,3 @@
-"""Application errors and the JSON error envelope shared by every endpoint.
-
-All error responses look like::
-
-    {"error": {"code": "NOT_FOUND", "message": "...", "details": [...]}}
-"""
-
 from __future__ import annotations
 
 import logging
@@ -54,8 +47,6 @@ class UnauthorizedError(AppError):
 
 
 class FieldValidationError(AppError):
-    """Business-rule validation failures, reported per field like schema errors."""
-
     def __init__(self, details: list[dict[str, str]]) -> None:
         message = details[0]["message"] if len(details) == 1 else "The request contains invalid values."
         super().__init__(422, "VALIDATION_ERROR", message, details)
@@ -77,7 +68,6 @@ def _format_loc(loc: tuple[Any, ...]) -> str:
 
 
 def _clean_message(message: str) -> str:
-    # Pydantic prefixes errors raised from validators with "Value error, ".
     return message.removeprefix("Value error, ").removeprefix("Assertion failed, ")
 
 

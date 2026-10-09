@@ -1,9 +1,3 @@
-"""Runtime configuration loaded from environment variables.
-
-Every deployment-specific value is read here so the rest of the code never
-touches ``os.environ`` directly. See the root README for the full list.
-"""
-
 from __future__ import annotations
 
 import os
@@ -52,18 +46,12 @@ class Settings:
         if self.session_cookie_samesite == "none" and not self.session_cookie_secure:
             raise ValueError("SESSION_COOKIE_SAMESITE=none requires SESSION_COOKIE_SECURE=true")
         if "*" in self.cors_allowed_origins:
-            # Credentialed CORS requests are incompatible with a wildcard origin.
             raise ValueError("CORS_ALLOWED_ORIGINS must list explicit origins, not '*'")
         if self.session_ttl_hours <= 0:
             raise ValueError("SESSION_TTL_HOURS must be positive")
 
 
 def load_env_file(path: Path) -> None:
-    """Load KEY=VALUE lines into os.environ without overriding existing variables.
-
-    Used by entry points (like wsgi.py) whose host can't set environment
-    variables for the process.
-    """
     if not path.is_file():
         return
     for raw in path.read_text(encoding="utf-8").splitlines():

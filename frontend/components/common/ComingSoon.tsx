@@ -19,7 +19,6 @@ interface ComingSoonProps {
   breadcrumbs?: { text: string; href: string }[];
 }
 
-/** Placeholder for console sections that this clone doesn't implement. */
 export function ComingSoon({ title, description, breadcrumbs = [] }: ComingSoonProps) {
   const router = useRouter();
   return (

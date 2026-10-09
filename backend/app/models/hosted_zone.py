@@ -24,7 +24,6 @@ class HostedZone(Base):
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now)
 
-    # passive_deletes lets the ON DELETE CASCADE foreign keys do the work.
     records: Mapped[list[DnsRecord]] = relationship(
         back_populates="zone", cascade="all, delete-orphan", passive_deletes=True
     )

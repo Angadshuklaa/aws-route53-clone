@@ -12,7 +12,6 @@ interface RecordCase {
   edit: { values: Fields[]; shown: string[] };
 }
 
-// One case per required record type: form inputs and how the table shows them.
 const CASES: RecordCase[] = [
   { type: "A", prefix: "www", values: [{ "IPv4 address": "192.0.2.10" }, { "IPv4 address": "192.0.2.11" }], shown: ["192.0.2.10", "192.0.2.11"], edit: { values: [{ "IPv4 address": "198.51.100.7" }], shown: ["198.51.100.7"] } },
   { type: "AAAA", prefix: "www", values: [{ "IPv6 address": "2001:db8::1" }], shown: ["2001:db8::1"], edit: { values: [{ "IPv6 address": "2001:db8::2" }], shown: ["2001:db8::2"] } },
@@ -27,7 +26,6 @@ const CASES: RecordCase[] = [
 
 async function fillValues(page: Page, values: Fields[]) {
   const dialog = modal(page);
-  // Reset to a single row, then add rows as needed.
   while ((await dialog.getByRole("button", { name: "Remove" }).count()) > 0 && (await dialog.getByRole("button", { name: "Remove" }).first().isEnabled())) {
     await dialog.getByRole("button", { name: "Remove" }).last().click();
   }
@@ -76,7 +74,6 @@ test.describe("DNS records", () => {
       const row = recordRow(page, fqdn, item.type);
       for (const value of item.shown) await expect(row).toContainText(value);
 
-      // Edit: the form opens prefilled, then save new values and TTL.
       await recordLink(page, fqdn, item.type).click();
       await expect(modal(page).getByLabel("TTL (seconds)")).toHaveValue("300");
       await fillValues(page, item.edit.values);
@@ -87,7 +84,6 @@ test.describe("DNS records", () => {
       await expect(row).toContainText("3600");
     }
 
-    // Everything survives a reload (it came from the database, not React state).
     await page.reload();
     await expect(page.getByRole("tab", { name: `Records (${CASES.length + 2})` })).toBeVisible();
     for (const item of CASES) {
@@ -95,7 +91,6 @@ test.describe("DNS records", () => {
       await expect(recordRow(page, fqdn, item.type)).toContainText(item.edit.shown[0]);
     }
 
-    // Delete each record individually.
     for (const item of CASES) {
       const fqdn = item.prefix ? `${item.prefix}.${zone.name}` : zone.name;
       const row = recordRow(page, fqdn, item.type);
@@ -118,14 +113,12 @@ test.describe("DNS records", () => {
     await expect(visible(dialog, "Enter a valid IPv4 address, such as 192.0.2.44.")).toBeVisible();
     await expect(visible(dialog, /empty labels/)).toBeVisible();
 
-    // A CNAME at the zone apex passes client checks but the API rejects it.
     await dialog.getByLabel("Record name", { exact: true }).fill("");
     await choose(dialog, page, "Record type", /(^|\s)CNAME – /);
     await dialog.getByLabel("Domain name 1", { exact: true }).fill("target.example.net");
     await dialog.getByRole("button", { name: "Create records" }).click();
     await expect(visible(dialog, /You can't create a CNAME record at the zone apex/)).toBeVisible();
 
-    // Cancel discards the form without creating anything.
     await dialog.getByRole("button", { name: "Cancel" }).click();
     await expect(dialog).toBeHidden();
     await expect(page.getByRole("tab", { name: "Records (2)" })).toBeVisible();
@@ -163,7 +156,6 @@ test.describe("DNS records", () => {
     await page.getByRole("button", { name: "Clear filters" }).first().click();
     await expect(rows).toHaveCount(7);
 
-    // Bulk delete the two CNAMEs together with the apex NS record (which must be skipped).
     await choose(page, page, "Filter by record type", "CNAME");
     await expect(rows).toHaveCount(2);
     await page.getByRole("checkbox", { name: "Select all records on this page" }).check();
@@ -173,7 +165,6 @@ test.describe("DNS records", () => {
     await page.getByRole("button", { name: "Clear filters" }).first().click();
     await expect(page.getByRole("tab", { name: "Records (5)" })).toBeVisible();
 
-    // Export downloads a real BIND file with this zone's records.
     await page.getByRole("button", { name: "Export zone file" }).click();
     const downloadPromise = page.waitForEvent("download");
     await page.getByRole("menuitem", { name: /BIND zone file/ }).click();

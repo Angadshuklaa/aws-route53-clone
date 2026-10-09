@@ -21,7 +21,6 @@ interface DeleteRecordsModalProps {
   onDeleted: (deletedIds: number[]) => void;
 }
 
-/** Confirms deletion of one or more records. Mount it only while it's open. */
 export function DeleteRecordsModal({ zone, records, onDismiss, onDeleted }: DeleteRecordsModalProps) {
   const { notify } = useNotifications();
   const [deleting, setDeleting] = useState(false);

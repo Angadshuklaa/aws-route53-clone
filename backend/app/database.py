@@ -1,5 +1,3 @@
-"""SQLite engine, session factory and schema migrations."""
-
 from __future__ import annotations
 
 import logging
@@ -27,8 +25,6 @@ def utc_now() -> datetime:
 
 
 class UTCDateTime(TypeDecorator[datetime]):
-    """Stores timezone-aware datetimes as sortable ISO-8601 UTC text."""
-
     impl = String
     cache_ok = True
 
@@ -55,7 +51,6 @@ def create_db_engine(database_path: str) -> Engine:
     @event.listens_for(engine, "connect")
     def _configure_connection(dbapi_connection: sqlite3.Connection, _record: object) -> None:
         cursor = dbapi_connection.cursor()
-        # SQLite leaves foreign keys off unless enabled on every connection.
         cursor.execute("PRAGMA foreign_keys = ON")
         cursor.execute("PRAGMA journal_mode = WAL")
         cursor.execute("PRAGMA synchronous = NORMAL")
@@ -70,11 +65,6 @@ def create_session_factory(engine: Engine) -> sessionmaker[Session]:
 
 
 def run_migrations(engine: Engine) -> list[str]:
-    """Apply pending ``migrations/*.sql`` files in order, each in one transaction.
-
-    Applied versions are tracked in ``schema_migrations`` so existing data is
-    never dropped or recreated on startup.
-    """
     applied_now: list[str] = []
     raw = engine.raw_connection()
     try:
@@ -112,7 +102,7 @@ def check_database(engine: Engine) -> bool:
         with engine.connect() as connection:
             connection.execute(text("SELECT 1 FROM hosted_zones LIMIT 1"))
         return True
-    except Exception:  # pragma: no cover - only hit when the disk is unavailable
+    except Exception:
         logger.exception("Database health check failed")
         return False
 

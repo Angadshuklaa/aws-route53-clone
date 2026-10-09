@@ -1,5 +1,3 @@
-# Container image for hosts that run Docker (Fly.io, Railway, Render, ...).
-# Mount a persistent volume at /data so the SQLite database survives deploys.
 FROM python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \

@@ -2,7 +2,6 @@ import { expect, type Locator, type Page } from "@playwright/test";
 
 export const DEMO = { account_id: "123456789012", username: "demo", password: "Route53Demo!" };
 
-/** Unique, clearly-marked names so runs against a shared demo never collide. */
 export const uniqueZoneName = (label: string) =>
   `e2e-${label}-${Date.now().toString(36)}${Math.floor(Math.random() * 1e4)}.example`;
 
@@ -16,13 +15,11 @@ export async function signIn(page: Page, nextPath?: string): Promise<void> {
   await expect(page).toHaveURL(new RegExp(nextPath ? nextPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") : "/route53/v2/dashboard"));
 }
 
-/** Signs in and opens the hosted zones list. */
 export async function signInToHostedZones(page: Page): Promise<void> {
   await signIn(page, "/route53/v2/hostedzones");
   await expect(page.getByRole("heading", { name: /Hosted zones/, level: 1 })).toBeVisible();
 }
 
-/** Creates a zone through the API (sharing the browser session) for faster setup. */
 export async function createZoneViaApi(page: Page, name: string, extra: Record<string, unknown> = {}) {
   const response = await page.request.post("/api/hosted-zones", { data: { name, ...extra } });
   expect(response.status(), await response.text()).toBe(201);
@@ -38,13 +35,11 @@ export async function deleteZonesViaApi(page: Page, prefix = "e2e-"): Promise<vo
   }
 }
 
-/** Picks an option in a Cloudscape Select identified by its label. */
 export async function choose(scope: Page | Locator, page: Page, selectLabel: string, option: string | RegExp) {
   await scope.getByRole("button", { name: selectLabel }).and(scope.locator("[aria-haspopup]")).first().click();
   await page.getByRole("option", { name: option }).first().click();
 }
 
-/** Visible text only: Cloudscape mirrors some text into hidden live regions for screen readers. */
 export function visible(scope: Page | Locator, text: string | RegExp): Locator {
   return scope.getByText(text).filter({ visible: true }).first();
 }

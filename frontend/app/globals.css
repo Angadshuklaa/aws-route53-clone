@@ -2,7 +2,6 @@ body {
   margin: 0;
 }
 
-/* The console header stays pinned above the AppLayout (see headerSelector). */
 #top-nav {
   position: sticky;
   top: 0;
@@ -16,7 +15,6 @@ body {
   min-height: 100vh;
 }
 
-/* Sign-in page */
 .signin-page {
   min-height: 100vh;
   display: flex;
@@ -49,7 +47,6 @@ body {
   text-align: center;
 }
 
-/* Record name input followed by the zone name, like the Route 53 record form. */
 .record-name-row {
   display: flex;
   align-items: center;
@@ -109,7 +106,6 @@ body {
   overflow: auto;
 }
 
-/* Keyboard users can jump past the navigation. */
 .skip-link {
   position: absolute;
   left: 16px;
@@ -126,7 +122,6 @@ body {
   top: 8px;
 }
 
-/* Console search with the keyboard hint shown inside the field, like the AWS console. */
 .console-search {
   position: relative;
   width: 100%;
@@ -142,7 +137,6 @@ body {
   pointer-events: none;
 }
 
-/* Console footer, pinned to the bottom like the AWS console footer. */
 #console-footer {
   position: fixed;
   left: 0;

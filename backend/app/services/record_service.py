@@ -1,5 +1,3 @@
-"""Business logic for DNS record sets inside a hosted zone."""
-
 from __future__ import annotations
 
 import logging
@@ -109,7 +107,6 @@ def list_records(
 
 def get_record(db: Session, zone: HostedZone, record_id: int) -> DnsRecord:
     record = db.get(DnsRecord, record_id)
-    # A record is only reachable through the zone it belongs to.
     if record is None or record.zone_id != zone.id:
         raise NotFoundError(f"No record with ID {record_id} exists in hosted zone {zone.id}.")
     return record
@@ -143,8 +140,7 @@ def check_conflicts(db: Session, zone: HostedZone, name: str, record_type: str, 
 
 
 def apply_values(record: DnsRecord, values: list[NormalizedValue]) -> None:
-    # Reuse rows by position so the (record_id, position) unique key never
-    # collides inside a single flush.
+    # update rows in place so (record_id, position) never collides during the flush
     existing = list(record.values)
     for position, value in enumerate(values):
         if position < len(existing):
@@ -214,7 +210,7 @@ def delete_record(db: Session, zone: HostedZone, record_id: int) -> None:
 def bulk_delete_records(db: Session, zone: HostedZone, record_ids: list[int]) -> BulkDeleteResult:
     deleted: list[int] = []
     failed: list[BulkDeleteFailure] = []
-    for record_id in dict.fromkeys(record_ids):  # de-duplicate, keep order
+    for record_id in dict.fromkeys(record_ids):
         record = db.get(DnsRecord, record_id)
         if record is None or record.zone_id != zone.id:
             failed.append(BulkDeleteFailure(id=record_id, message="Record not found in this hosted zone."))

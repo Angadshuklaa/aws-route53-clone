@@ -1,10 +1,6 @@
 #!/bin/bash
-# One-time (and re-runnable) setup for PythonAnywhere. Run it in a Bash console:
+# Usage (PythonAnywhere Bash console):
 #   curl -fsSL https://raw.githubusercontent.com/Angadshuklaa/aws-route53-clone/main/backend/deploy/pythonanywhere-setup.sh | bash
-#
-# It clones or updates the repository, builds the virtualenv, and writes
-# backend/.env with production settings. The SQLite database lives in
-# ~/route53-data, outside the git checkout, so updates never touch it.
 set -euo pipefail
 
 REPO_URL="https://github.com/Angadshuklaa/aws-route53-clone.git"
@@ -19,7 +15,8 @@ done
 echo "Using $PYTHON"
 
 if [ -d "$APP_DIR/.git" ]; then
-  git -C "$APP_DIR" pull --ff-only
+  git -C "$APP_DIR" fetch --quiet origin main
+  git -C "$APP_DIR" reset --quiet --hard origin/main
 else
   git clone --depth 1 "$REPO_URL" "$APP_DIR"
 fi
@@ -42,7 +39,6 @@ ENV
   echo "Wrote $APP_DIR/backend/.env"
 fi
 
-# Apply migrations (and the one-time demo seed) now so the first request is fast.
 .venv/bin/python -c "import wsgi" && echo "Database ready at $DATA_DIR/route53.db"
 echo "PYTHON_VERSION=$PYTHON"
 echo "Setup complete."

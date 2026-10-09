@@ -42,7 +42,7 @@ def test_import_bind_zone_file(client: TestClient, zone: dict) -> None:
     assert result["created"] == 11
     assert result["updated"] == 0
     error_lines = {issue["line"] for issue in result["errors"]}
-    assert error_lines == {22, 24}  # invalid IPv4, owner outside the zone
+    assert error_lines == {22, 24}
     skipped = " ".join(issue["message"] for issue in result["skipped"])
     assert "SOA" in skipped and "SSHFP" in skipped and "zone apex" in skipped
 
@@ -85,7 +85,6 @@ def test_export_bind_round_trips(client: TestClient, zone: dict, create_zone) ->
     assert "$ORIGIN example.com." in text
     assert "_sip._tcp.example.com." in text and "sip.example.com." in text
 
-    # Re-import into a fresh zone with the same name and compare record sets.
     original = client.get(f"/api/hosted-zones/{zone['id']}/records", params={"page_size": 100}).json()["items"]
     client.delete(f"/api/hosted-zones/{zone['id']}")
     copy = create_zone("example.com")

@@ -1,5 +1,3 @@
-// Small inline icons for the public landing page (Cloudscape icons are sized
-// for the console, so the marketing-style page draws its own).
 import type { SVGProps } from "react";
 
 type IconProps = SVGProps<SVGSVGElement>;

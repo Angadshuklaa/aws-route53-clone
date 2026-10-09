@@ -1,11 +1,3 @@
-/**
- * Thin fetch wrapper for the FastAPI backend.
- *
- * Requests go to `${NEXT_PUBLIC_API_BASE_URL}/api/...` when that variable is
- * set, otherwise to the same origin where Next.js proxies `/api/*` to the
- * backend (see next.config.ts). Cookies are always sent.
- */
-
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(/\/+$/, "");
 
 export interface FieldError {
@@ -24,7 +16,6 @@ export class ApiError extends Error {
     this.name = "ApiError";
   }
 
-  /** Field-level errors keyed by field path, e.g. `values[0].priority`. */
   fieldErrors(): Record<string, string> {
     return Object.fromEntries(this.details.map((detail) => [detail.field, detail.message]));
   }
@@ -41,7 +32,6 @@ interface RequestOptions {
 
 let unauthorizedHandler: (() => void) | null = null;
 
-/** Called when an authenticated request comes back 401 (e.g. the session expired). */
 export function setUnauthorizedHandler(handler: (() => void) | null): void {
   unauthorizedHandler = handler;
 }

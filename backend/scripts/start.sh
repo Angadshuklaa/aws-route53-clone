@@ -1,7 +1,4 @@
 #!/bin/sh
-# Production start command. Hosting platforms provide the bind address and
-# port ($IP/$HOST and $PORT); a single worker is used because SQLite
-# serialises writes anyway. Settings can live in backend/.env on the server.
 set -eu
 cd "$(dirname "$0")/.."
 

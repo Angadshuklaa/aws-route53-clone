@@ -9,7 +9,6 @@ export const ROUTES = {
 export interface PlaceholderSection {
   title: string;
   description: string;
-  /** Navigation group the section belongs to, shown in the breadcrumbs. */
   group?: string;
 }
 
@@ -17,7 +16,6 @@ const RESOLVER_DESCRIPTION =
   "Route 53 Resolver answers DNS queries for your VPCs and forwards queries between VPCs and your own network.";
 const FIREWALL_DESCRIPTION = "DNS Firewall filters the DNS queries that leave your VPCs.";
 
-/** Console sections this clone shows as "coming soon", keyed by URL path under /route53/v2/. */
 export const PLACEHOLDER_SECTIONS: Record<string, PlaceholderSection> = {
   healthchecks: {
     title: "Health checks",

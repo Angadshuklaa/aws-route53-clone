@@ -1,9 +1,3 @@
-"""DNS naming rules plus per-type validation and formatting of record values.
-
-These rules are intentionally pragmatic: they reject clearly invalid input
-without implementing every corner of the DNS RFCs.
-"""
-
 from __future__ import annotations
 
 import hashlib
@@ -23,7 +17,6 @@ MAX_TXT_LENGTH = 4000
 MAX_CAA_VALUE_LENGTH = 1024
 
 _ZONE_LABEL = re.compile(r"^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$")
-# Record names and targets may also contain underscores (e.g. _sip._tcp, DKIM selectors).
 _HOST_LABEL = re.compile(r"^[a-z0-9_]([a-z0-9_-]{0,61}[a-z0-9_])?$")
 _PRINTABLE_ASCII = re.compile(r"^[\x20-\x7e]*$")
 
@@ -275,7 +268,6 @@ def _absolute(host: str) -> str:
 
 
 def format_value(record_type: str, item: NormalizedValue | RecordValueInput, zone_file: bool = False) -> str:
-    """Render a value the way Route 53 displays it (or as zone-file RDATA)."""
     host = (lambda h: _absolute(h)) if zone_file else (lambda h: h)
     if record_type == "MX":
         return f"{item.priority} {host(item.value)}"
@@ -285,7 +277,6 @@ def format_value(record_type: str, item: NormalizedValue | RecordValueInput, zon
         return f"{item.flags} {item.tag} {quote_txt(item.value)}"
     if record_type == "TXT":
         if zone_file and len(item.value) > 255:
-            # A single DNS character-string holds at most 255 bytes.
             chunks = [item.value[i : i + 255] for i in range(0, len(item.value), 255)]
             return " ".join(quote_txt(chunk) for chunk in chunks)
         return quote_txt(item.value)
@@ -295,7 +286,6 @@ def format_value(record_type: str, item: NormalizedValue | RecordValueInput, zon
 
 
 def generate_name_servers(zone_id: str, private: bool) -> list[str]:
-    """Deterministic awsdns-style delegation set for a zone."""
     if private:
         return ["ns-0.awsdns-00.com", "ns-512.awsdns-00.net", "ns-1024.awsdns-00.org", "ns-1536.awsdns-00.co.uk"]
     digest = hashlib.sha256(zone_id.encode()).digest()

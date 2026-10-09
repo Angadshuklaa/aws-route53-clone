@@ -269,7 +269,6 @@ export function LandingPage() {
   const consoleHref = signedIn ? ROUTES.dashboard : loginUrl(ROUTES.dashboard);
   const consoleLabel = signedIn ? "Go to the console" : "Sign in to console";
 
-  // Highlight the product-bar tab for the section in view.
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -285,7 +284,6 @@ export function LandingPage() {
     return () => observer.disconnect();
   }, []);
 
-  // Close menus on outside click or Escape.
   useEffect(() => {
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target as Node;

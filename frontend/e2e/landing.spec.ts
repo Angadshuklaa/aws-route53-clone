@@ -8,18 +8,15 @@ test.describe("public landing page", () => {
     await expect(page.getByRole("heading", { name: "Route 53 Clone - DNS service", level: 1 })).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Route 53 Clone" })).toBeVisible();
 
-    // Accordions expand and collapse.
     const benefit = page.getByRole("button", { name: /Manage public and private hosted zones/ });
     await expect(benefit).toHaveAttribute("aria-expanded", "false");
     await benefit.click();
     await expect(benefit).toHaveAttribute("aria-expanded", "true");
     await expect(page.getByText(/Every new zone starts with its NS and SOA records/)).toBeVisible();
 
-    // The product bar links to sections on the page.
     await page.getByRole("navigation", { name: "Route 53 Clone" }).getByRole("link", { name: "FAQs" }).click();
     await expect(page).toHaveURL(/#faqs$/);
 
-    // "Sign in to console" goes to sign-in and then to the console dashboard.
     await page.getByRole("link", { name: "Sign in to console" }).first().click();
     await expect(page).toHaveURL(/\/login\?next=%2Froute53%2Fv2%2Fdashboard/);
     await page.getByRole("button", { name: "Use demo credentials" }).first().click();

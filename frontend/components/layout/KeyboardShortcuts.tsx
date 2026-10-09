@@ -10,7 +10,6 @@ import { ROUTES } from "@/lib/routes";
 import { SHORTCUTS, useHotkeys } from "@/lib/hotkeys";
 import { usePreferences } from "@/lib/preferences";
 
-/** Global shortcuts plus the "Keyboard shortcuts" help dialog. */
 export function KeyboardShortcuts() {
   const router = useRouter();
   const { shortcutsVisible, setShortcutsVisible } = usePreferences();

@@ -45,7 +45,7 @@ class HostedZoneCreate(_ZoneWritable):
 
 
 class HostedZoneUpdate(_ZoneWritable):
-    """Replaces the editable fields. The domain name and type can't be changed."""
+    pass
 
 
 class HostedZoneOut(BaseModel):

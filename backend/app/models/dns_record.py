@@ -13,8 +13,6 @@ if TYPE_CHECKING:
 
 
 class DnsRecord(Base):
-    """A record set: every value sharing one name and type within a zone."""
-
     __tablename__ = "dns_records"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

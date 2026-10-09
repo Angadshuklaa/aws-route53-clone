@@ -1,8 +1,3 @@
-"""FastAPI application factory.
-
-Run with: ``uvicorn app.main:create_app --factory``
-"""
-
 from __future__ import annotations
 
 import logging
@@ -24,7 +19,6 @@ logger = logging.getLogger("app")
 
 
 def initialize_database(app: FastAPI) -> None:
-    """Apply pending migrations and seed demo data once. Safe to call repeatedly."""
     settings: Settings = app.state.settings
     applied = run_migrations(app.state.engine)
     logger.info(

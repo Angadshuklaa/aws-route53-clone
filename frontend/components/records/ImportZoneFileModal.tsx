@@ -40,7 +40,6 @@ function IssueList({ title, issues }: { title: string; issues: ZoneImportIssue[]
   );
 }
 
-/** Imports records from a BIND zone file. Mount it only while it's open. */
 export function ImportZoneFileModal({ zone, onDismiss, onImported }: ImportZoneFileModalProps) {
   const { notify } = useNotifications();
   const [files, setFiles] = useState<File[]>([]);

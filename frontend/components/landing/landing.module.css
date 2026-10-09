@@ -1,8 +1,3 @@
-/* Public landing page, modelled on the layout of the Route 53 product page:
-   dark utility bar, white main navigation, a floating product bar, a warm
-   gradient hero, two-column accordions, large image-style cards and a dark
-   rounded footer. */
-
 .page {
   --ink: #161d26;
   --ink-soft: #232f3e;
@@ -27,8 +22,6 @@
   margin: 0 auto;
   padding: 0 40px;
 }
-
-/* ---------- Header (utility bar + main navigation) ---------- */
 
 .header {
   position: sticky;
@@ -301,15 +294,13 @@
   display: none;
 }
 
-/* ---------- Product bar ---------- */
-
 .subNavWrap {
   position: sticky;
   top: var(--header-height);
   z-index: 40;
   padding: 17px 60px 0;
-  margin-bottom: -79px; /* float over the hero like the original */
-  pointer-events: none; /* the transparent strip above the bar must not block clicks */
+  margin-bottom: -79px;
+  pointer-events: none;
 }
 
 .subNav {
@@ -399,8 +390,6 @@
   background: #f2f3f3;
 }
 
-/* ---------- Hero ---------- */
-
 .hero {
   position: relative;
   padding: 122px 0 120px;
@@ -454,8 +443,6 @@
   flex-wrap: wrap;
   gap: 16px;
 }
-
-/* ---------- Sections ---------- */
 
 .section {
   padding: 72px 0;
@@ -559,8 +546,6 @@
   height: auto;
 }
 
-/* ---------- Image-style cards ---------- */
-
 .spotlights {
   display: grid;
   gap: 24px;
@@ -656,8 +641,6 @@
   padding: 40px;
 }
 
-/* ---------- Feedback banner ---------- */
-
 .feedback {
   border-radius: 24px;
   padding: 64px 40px;
@@ -696,8 +679,6 @@
   font-weight: 600;
   max-width: 520px;
 }
-
-/* ---------- Footer ---------- */
 
 .footer {
   margin-top: 72px;
@@ -785,8 +766,6 @@
 .legal p {
   margin: 0 0 12px;
 }
-
-/* ---------- Responsive ---------- */
 
 @media (max-width: 1100px) {
   .primaryLinks {
