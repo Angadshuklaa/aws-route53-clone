@@ -247,25 +247,42 @@
   line-height: 20px;
 }
 
+.pillDark,
+.pillOutline {
+  position: relative;
+  isolation: isolate;
+}
+
+.pillDark::before,
+.pillOutline::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ff4fa3 0%, #ff6f91 45%, #ff9a5a 100%);
+  filter: blur(14px);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.pillDark:hover::before,
+.pillOutline:hover::before,
+.pillDark:focus-visible::before,
+.pillOutline:focus-visible::before {
+  opacity: 0.7;
+}
+
 .pillDark {
   background: var(--ink);
   color: #ffffff !important;
   border: 2px solid var(--ink);
 }
 
-.pillDark:hover {
-  background: #2f3b48;
-  border-color: #2f3b48;
-}
-
 .pillOutline {
-  background: transparent;
+  background: #ffffff;
   color: var(--ink) !important;
   border: 2px solid var(--ink);
-}
-
-.pillOutline:hover {
-  background: rgba(22, 29, 38, 0.06);
 }
 
 .pillLight {
