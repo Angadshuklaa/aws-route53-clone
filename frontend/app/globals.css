@@ -1,0 +1,110 @@
+body {
+  margin: 0;
+}
+
+/* The console header stays pinned above the AppLayout (see headerSelector). */
+#top-nav {
+  position: sticky;
+  top: 0;
+  z-index: 1002;
+}
+
+.full-page-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+/* Sign-in page */
+.signin-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 16px 32px;
+  box-sizing: border-box;
+}
+
+.signin-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.signin-brand img {
+  width: 40px;
+  height: 40px;
+}
+
+.signin-card {
+  width: 100%;
+  max-width: 440px;
+}
+
+.signin-footer {
+  margin-top: 24px;
+  max-width: 440px;
+  text-align: center;
+}
+
+/* Record name input followed by the zone name, like the Route 53 record form. */
+.record-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.record-name-row > :first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.record-name-suffix {
+  flex: 0 1 auto;
+  overflow-wrap: anywhere;
+}
+
+.value-lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.value-lines li {
+  overflow-wrap: anywhere;
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+}
+
+.filter-bar__text {
+  flex: 1 1 260px;
+  max-width: 480px;
+}
+
+.filter-bar__select {
+  flex: 0 1 220px;
+}
+
+.coming-soon {
+  padding: 32px 16px;
+  text-align: center;
+}
+
+.coming-soon__icon {
+  font-size: 0;
+  margin-bottom: 8px;
+}
+
+.issue-list {
+  margin: 4px 0 0;
+  padding-left: 20px;
+  max-height: 180px;
+  overflow: auto;
+}
